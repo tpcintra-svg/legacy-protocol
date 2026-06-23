@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  (function() {
+    var ok = sessionStorage.getItem("lgy_access");
+    if (!ok) {
+      var pw = prompt("Access code:");
+      if (pw !== "123") {
+        document.documentElement.innerHTML = "";
+        window.location.replace("index.html");
+      } else {
+        sessionStorage.setItem("lgy_access", "1");
+      }
+    }
+  })();
+</script>
+<title>Legacy Protocol — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0B0F14;
+    --ink-soft: #131920;
+    --ink-card: #161C24;
+    --parchment: #E8E3D8;
+    --parchment-dim: #C9C2B2;
+    --sage: #8A9B8E;
+    --sage-dim: #5E6E63;
+    --amber: #C4673A;
+    --amber-bright: #DD8458;
+    --line: rgba(232,227,216,0.10);
+    --line-bright: rgba(232,227,216,0.22);
+    --body: 'IBM Plex Sans', sans-serif;
+    --display: 'Fraunces', serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  a { color:inherit; text-decoration:none; }
+
+  /* ── NAV ── */
+  nav {
+    border-bottom: 1px solid var(--line);
+    background: rgba(11,15,20,0.92);
+    backdrop-filter: blur(12px);
+    position: sticky; top:0; z-index:100;
+  }
+  .nav-inner {
+    max-width:1180px; margin:0 auto; padding:0 32px;
+    display:flex; align-items:center; justify-content:space-between;
+    height:60px;
+  }
+  .brand {
+    display:flex; align-items:center; gap:10px;
+    font-family: var(--display); font-size:17px; font-weight:500;
+    color: var(--parchment);
+  }
+  .brand a { display:flex; align-items:center; gap:10px; }
+  .nav-right { display:flex; align-items:center; gap:16px; }
+
+  /* ── WALLET BUTTON ── */
+  .btn-wallet {
+    display:flex; align-items:center; gap:8px;
+    padding:8px 18px; border-radius:6px; font-size:13px; font-weight:500;
+    cursor:pointer; border:none; transition:all .2s;
+    font-family: var(--body);
+  }
+  .btn-wallet.disconnected {
+    background: var(--sage); color: var(--ink);
+  }
+  .btn-wallet.disconnected:hover { background: #9dafa1; }
+  .btn-wallet.connected {
+    background: rgba(138,155,142,0.12);
+    color: var(--sage);
+    border: 1px solid rgba(138,155,142,0.3);
+  }
+  .btn-wallet.connected:hover { background: rgba(138,155,142,0.2); }
+  .wallet-dot {
+    width:7px; height:7px; border-radius:50%;
+    background: var(--sage); flex-shrink:0;
+  }
+
+  /* ── LAYOUT ── */
+  .app-layout {
+    max-width:1180px; margin:0 auto; padding:40px 32px;
+    display:grid; grid-template-columns:220px 1fr; gap:32px;
+  }
+  @media(max-width:760px) {
+    .app-layout { grid-template-columns:1fr; padding:24px 20px; }
+    .sidebar { display:none; }
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar { display:flex; flex-direction:column; gap:4px; }
+  .sidebar-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; border-radius:7px;
+    font-size:14px; color:var(--parchment-dim);
+    cursor:pointer; transition:all .15s; user-select:none;
+  }
+  .sidebar-item:hover { background:var(--line); color:var(--parchment); }
+  .sidebar-item.active {
+    background: rgba(138,155,142,0.12);
+    color: var(--sage);
+  }
+  .sidebar-icon { font-size:16px; width:20px; text-align:center; }
+  .sidebar-divider {
+    height:1px; background:var(--line); margin:8px 0;
+  }
+
+  /* ── MAIN ── */
+  .main { min-width:0; }
+
+  /* ── CONNECT PROMPT ── */
+  .connect-prompt {
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:20px;
+    padding:80px 24px; text-align:center;
+  }
+  .connect-prompt-icon {
+    width:64px; height:64px;
+    background: rgba(138,155,142,0.08);
+    border: 1px solid rgba(138,155,142,0.2);
+    border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .connect-prompt h2 {
+    font-family:var(--display); font-size:24px; font-weight:500;
+  }
+  .connect-prompt p { color:var(--parchment-dim); max-width:360px; font-size:14px; }
+  .btn-primary {
+    padding:11px 28px; border-radius:7px;
+    background:var(--sage); color:var(--ink);
+    font-weight:600; font-size:14px;
+    border:none; cursor:pointer; transition:all .2s;
+    font-family:var(--body);
+  }
+  .btn-primary:hover { background:#9dafa1; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .section-title {
+    font-family:var(--display); font-size:20px; font-weight:500;
+  }
+  .btn-action {
+    display:flex; align-items:center; gap:6px;
+    padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500;
+    background: rgba(138,155,142,0.12);
+    color: var(--sage);
+    border: 1px solid rgba(138,155,142,0.25);
+    cursor:pointer; transition:all .2s; font-family:var(--body);
+  }
+  .btn-action:hover { background:rgba(138,155,142,0.22); }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+    margin-bottom:28px;
+  }
+  @media(max-width:640px) { .stats-row { grid-template-columns:1fr; } }
+  .stat-card {
+    background:var(--ink-card); border:1px solid var(--line);
+    border-radius:10px; padding:20px;
+  }
+  .stat-label { font-size:12px; color:var(--parchment-dim); letter-spacing:.04em; text-transform:uppercase; margin-bottom:6px; }
+  .stat-value { font-size:26px; font-family:var(--mono); color:var(--parchment); }
+  .stat-sub { font-size:12px; color:var(--parchment-dim); margin-top:2px; }
+
+  /* ── VAULT CARDS ── */
+  .vault-list { display:flex; flex-direction:column; gap:12px; }
+  .vault-card {
+    background:var(--ink-card); border:1px solid var(--line);
+    border-radius:10px; padding:20px 24px;
+    transition:border-color .2s;
+  }
+  .vault-card:hover { border-color:var(--line-bright); }
+  .vault-card-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .vault-id {
+    font-family:var(--mono); font-size:12px; color:var(--parchment-dim);
+  }
+  .vault-status {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:3px 10px; border-radius:20px; font-size:11px; font-weight:500;
+  }
+  .vault-status.active {
+    background:rgba(138,155,142,0.12); color:var(--sage);
+  }
+  .vault-status.expired {
+    background:rgba(196,103,58,0.12); color:var(--amber);
+  }
+  .vault-status.claimed {
+    background:rgba(107,119,133,0.12); color:#6B7785;
+  }
+  .vault-label {
+    font-size:15px; color:var(--parchment); margin-bottom:10px;
+    font-family:var(--display);
+  }
+  .vault-meta {
+    display:flex; gap:20px; flex-wrap:wrap;
+  }
+  .vault-meta-item { font-size:12px; color:var(--parchment-dim); }
+  .vault-meta-item span { color:var(--parchment); }
+  .vault-actions {
+    display:flex; gap:8px; margin-top:14px; padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .btn-sm {
+    padding:6px 14px; border-radius:5px; font-size:12px; font-weight:500;
+    border:1px solid var(--line-bright); background:transparent;
+    color:var(--parchment-dim); cursor:pointer; transition:all .15s;
+    font-family:var(--body);
+  }
+  .btn-sm:hover { border-color:var(--sage); color:var(--sage); background:rgba(138,155,142,0.06); }
+  .btn-sm.danger:hover { border-color:var(--amber); color:var(--amber); background:rgba(196,103,58,0.06); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align:center; padding:48px 24px;
+    background:var(--ink-card); border:1px dashed var(--line-bright);
+    border-radius:10px; color:var(--parchment-dim);
+  }
+  .empty-state p { margin-bottom:16px; }
+
+  /* ── MODAL OVERLAY ── */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; z-index:200;
+    background:rgba(11,15,20,0.85); backdrop-filter:blur(4px);
+    align-items:center; justify-content:center; padding:24px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--ink-card); border:1px solid var(--line-bright);
+    border-radius:14px; padding:32px; width:100%; max-width:520px;
+    max-height:90vh; overflow-y:auto;
+  }
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:24px;
+  }
+  .modal-title { font-family:var(--display); font-size:20px; font-weight:500; }
+  .modal-close {
+    width:32px; height:32px; border-radius:6px; display:flex;
+    align-items:center; justify-content:center;
+    background:transparent; border:none; color:var(--parchment-dim);
+    cursor:pointer; font-size:18px; transition:all .15s;
+  }
+  .modal-close:hover { background:var(--line); color:var(--parchment); }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom:18px; }
+  .form-label {
+    display:block; font-size:12px; font-weight:500;
+    color:var(--parchment-dim); letter-spacing:.04em;
+    text-transform:uppercase; margin-bottom:6px;
+  }
+  .form-input, .form-textarea {
+    width:100%; padding:10px 14px; border-radius:7px;
+    background:rgba(255,255,255,0.04); border:1px solid var(--line-bright);
+    color:var(--parchment); font-family:var(--body); font-size:14px;
+    transition:border-color .15s; outline:none;
+  }
+  .form-input:focus, .form-textarea:focus {
+    border-color:var(--sage); background:rgba(138,155,142,0.04);
+  }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .form-hint { font-size:11px; color:var(--parchment-dim); margin-top:4px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:480px) { .form-row { grid-template-columns:1fr; } }
+
+  .recipient-row {
+    display:flex; gap:8px; align-items:center; margin-bottom:8px;
+  }
+  .recipient-row .form-input { flex:1; }
+  .btn-remove {
+    width:32px; height:36px; border-radius:5px; flex-shrink:0;
+    background:transparent; border:1px solid var(--line);
+    color:var(--parchment-dim); cursor:pointer; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .btn-remove:hover { border-color:var(--amber); color:var(--amber); }
+  .btn-add-recipient {
+    font-size:12px; color:var(--sage); background:none; border:none;
+    cursor:pointer; padding:0; display:flex; align-items:center; gap:4px;
+    font-family:var(--body);
+  }
+  .btn-add-recipient:hover { color:#9dafa1; }
+
+  /* ── TX STATUS ── */
+  .tx-status {
+    display:none; padding:12px 16px; border-radius:7px;
+    font-size:13px; margin-top:12px;
+  }
+  .tx-status.pending {
+    background:rgba(138,155,142,0.08); border:1px solid rgba(138,155,142,0.2);
+    color:var(--sage); display:block;
+  }
+  .tx-status.success {
+    background:rgba(138,155,142,0.12); border:1px solid rgba(138,155,142,0.3);
+    color:var(--sage); display:block;
+  }
+  .tx-status.error {
+    background:rgba(196,103,58,0.08); border:1px solid rgba(196,103,58,0.2);
+    color:var(--amber); display:block;
+  }
+
+  /* ── NETWORK BADGE ── */
+  .network-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:4px 10px; border-radius:20px; font-size:11px;
+    background:rgba(138,155,142,0.08); color:var(--sage-dim);
+    border:1px solid var(--line);
+  }
+  .network-dot { width:6px; height:6px; border-radius:50%; background:#5B8DEF; }
+
+  /* ── TABS ── */
+  .tabs { display:flex; gap:2px; margin-bottom:24px; }
+  .tab {
+    padding:8px 18px; border-radius:6px; font-size:13px; font-weight:500;
+    cursor:pointer; border:none; background:transparent;
+    color:var(--parchment-dim); transition:all .15s; font-family:var(--body);
+  }
+  .tab.active { background:rgba(138,155,142,0.12); color:var(--sage); }
+  .tab:hover:not(.active) { background:var(--line); color:var(--parchment); }
+
+  /* ── SPINNER ── */
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .spinner {
+    width:14px; height:14px; border:2px solid currentColor;
+    border-top-color:transparent; border-radius:50%;
+    animation:spin .7s linear infinite; display:inline-block;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position:fixed; bottom:24px; right:24px; z-index:300;
+    padding:12px 20px; border-radius:8px; font-size:13px;
+    background:var(--ink-card); border:1px solid var(--line-bright);
+    color:var(--parchment); max-width:320px;
+    transform:translateY(80px); opacity:0;
+    transition:all .3s; pointer-events:none;
+  }
+  .toast.show { transform:translateY(0); opacity:1; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="brand">
+      <a href="index.html">
+        <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+          <path d="M10 13V10C10 7.24 11.79 5.5 14 5.5C16.21 5.5 18 7.24 18 10V13" stroke="#8A9B8E" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <rect x="7" y="13" width="14" height="10" rx="2.5" stroke="#8A9B8E" stroke-width="1.5" fill="rgba(138,155,142,0.1)"/>
+          <circle cx="14" cy="17.5" r="1.8" fill="#8A9B8E"/>
+          <rect x="13.3" y="17.5" width="1.4" height="3" rx="0.7" fill="#8A9B8E"/>
+        </svg>
+        Legacy Protocol
+      </a>
+    </div>
+    <div class="nav-right">
+      <span class="network-badge" id="networkBadge" style="display:none;">
+        <span class="network-dot"></span>
+        Base Sepolia
+      </span>
+      <button class="btn-wallet disconnected" id="walletBtn" onclick="toggleWallet()">
+        Connect Wallet
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- APP LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-item active" onclick="showTab('myVaults')">
+      <span class="sidebar-icon">🔒</span> My Vaults
+    </div>
+    <div class="sidebar-item" onclick="showTab('incoming')">
+      <span class="sidebar-icon">📬</span> Incoming
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" onclick="showTab('activity')">
+      <span class="sidebar-icon">⚡</span> Activity
+    </div>
+    <div class="sidebar-item" onclick="window.location='index.html'">
+      <span class="sidebar-icon">↩</span> Back to site
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainContent">
+
+    <!-- CONNECT PROMPT (shown when not connected) -->
+    <div class="connect-prompt" id="connectPrompt">
+      <div class="connect-prompt-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M10 13V10C10 7.24 11.79 5.5 14 5.5C16.21 5.5 18 7.24 18 10V13" stroke="#8A9B8E" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <rect x="7" y="13" width="14" height="10" rx="2.5" stroke="#8A9B8E" stroke-width="1.5" fill="rgba(138,155,142,0.1)"/>
+          <circle cx="14" cy="17.5" r="1.8" fill="#8A9B8E"/>
+          <rect x="13.3" y="17.5" width="1.4" height="3" rx="0.7" fill="#8A9B8E"/>
+        </svg>
+      </div>
+      <h2>Connect your wallet</h2>
+      <p>Connect MetaMask to view your vaults, create new ones, or check incoming legacy claims.</p>
+      <button class="btn-primary" onclick="connectWallet()">Connect MetaMask</button>
+    </div>
+
+    <!-- DASHBOARD (shown when connected) -->
+    <div id="dashboard" style="display:none;">
+
+      <!-- MY VAULTS TAB -->
+      <div id="tab-myVaults">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Active Vaults</div>
+            <div class="stat-value" id="statActive">—</div>
+            <div class="stat-sub">Staked & running</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Staked</div>
+            <div class="stat-value" id="statStaked">—</div>
+            <div class="stat-sub">ETH across all vaults</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Recipients</div>
+            <div class="stat-value" id="statRecipients">—</div>
+            <div class="stat-sub">Across all your vaults</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2 class="section-title">My Vaults</h2>
+          <button class="btn-action" onclick="openCreateModal()">+ New Vault</button>
+        </div>
+
+        <div id="myVaultsList" class="vault-list">
+          <div class="empty-state">
+            <p>No vaults yet.</p>
+            <button class="btn-primary" onclick="openCreateModal()">Create your first vault</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INCOMING TAB -->
+      <div id="tab-incoming" style="display:none;">
+        <div class="section-header">
+          <h2 class="section-title">Incoming</h2>
+        </div>
+        <p style="color:var(--parchment-dim); font-size:14px; margin-bottom:20px;">
+          Vaults where you are listed as a recipient. You can file a claim once the vault has expired.
+        </p>
+        <div id="incomingList" class="vault-list">
+          <div class="empty-state">
+            <p>No incoming vaults found for your address.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY TAB -->
+      <div id="tab-activity" style="display:none;">
+        <div class="section-header">
+          <h2 class="section-title">Activity</h2>
+        </div>
+        <div id="activityList">
+          <div class="empty-state">
+            <p>No recent activity.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- CREATE VAULT MODAL -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">New Vault</h3>
+      <button class="modal-close" onclick="closeModal('createModal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Vault Label (encrypted)</label>
+      <input class="form-input" id="vaultLabel" placeholder="e.g. Family estate instructions" />
+      <div class="form-hint">Only you and your recipients can read this — it's stored encrypted.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Encrypted Data / IPFS URI</label>
+      <textarea class="form-textarea" id="vaultDataURI" placeholder="ipfs://... or leave blank"></textarea>
+      <div class="form-hint">Optional. Link to encrypted file stored on IPFS or Arweave.</div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Duration</label>
+        <select class="form-input" id="vaultDuration">
+          <option value="2592000">30 days</option>
+          <option value="7776000">90 days</option>
+          <option value="15552000" selected>180 days</option>
+          <option value="31536000">1 year</option>
+          <option value="94608000">3 years</option>
+          <option value="157680000">5 years</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Challenge Window</label>
+        <select class="form-input" id="vaultVetoWindow">
+          <option value="259200">72 hours (min)</option>
+          <option value="604800" selected>7 days</option>
+          <option value="1209600">14 days</option>
+          <option value="2592000">30 days (max)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Recipients</label>
+      <div id="recipientInputs">
+        <div class="recipient-row">
+          <input class="form-input" placeholder="0x... wallet address" />
+        </div>
+      </div>
+      <button class="btn-add-recipient" onclick="addRecipient()">+ Add recipient</button>
+      <div class="form-hint" style="margin-top:6px;">Up to 50 recipients. Each receives a unique signing key off-chain.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Estimated Cost</label>
+      <div style="font-family:var(--mono); font-size:20px; color:var(--parchment);" id="estimatedCost">— ETH</div>
+      <div class="form-hint">Calculated from duration × rate + activation fee (0.005 ETH)</div>
+    </div>
+
+    <div id="createTxStatus" class="tx-status"></div>
+
+    <button class="btn-primary" style="width:100%; margin-top:8px;" onclick="createVault()" id="createVaultBtn">
+      Create Vault
+    </button>
+  </div>
+</div>
+
+<!-- EXTEND MODAL -->
+<div class="modal-overlay" id="extendModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Extend Vault</h3>
+      <button class="modal-close" onclick="closeModal('extendModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Additional Duration</label>
+      <select class="form-input" id="extendDuration">
+        <option value="2592000">+ 30 days</option>
+        <option value="7776000">+ 90 days</option>
+        <option value="15552000" selected>+ 180 days</option>
+        <option value="31536000">+ 1 year</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Additional Cost</label>
+      <div style="font-family:var(--mono); font-size:20px; color:var(--parchment);" id="extendCost">— ETH</div>
+    </div>
+    <div id="extendTxStatus" class="tx-status"></div>
+    <button class="btn-primary" style="width:100%; margin-top:8px;" onclick="executeExtend()" id="extendBtn">
+      Extend Vault
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // TODO: replace after deploy
+const BASE_SEPOLIA_CHAIN_ID = "0x14a34"; // 84532
+const COST_PER_SECOND = BigInt("4160000000000"); // 0.00000416 ETH in wei
+const BASE_FEE = BigInt("5000000000000000"); // 0.005 ETH in wei
+
+const ABI = [
+  "function createLegacyVault(uint256,uint256,bytes32[],address[],string,string,bool) payable",
+  "function extendLegacyStaking(uint256,uint256) payable",
+  "function emergencyUnstake(uint256)",
+  "function iamAliveVeto(uint256)",
+  "function notifyVaultClaimable(uint256)",
+  "function getVaultPublicInfo(uint256) view returns (address,uint256,uint256,bool,bool)",
+  "function getVaultRate(uint256) view returns (uint256)",
+  "function costPerSecond() view returns (uint256)",
+  "function baseActivationFee() view returns (uint256)",
+  "event LegacyVaultCreated(uint256 indexed vaultId, address indexed creator, uint256 expirationTime)",
+  "event VaultBecameClaimable(uint256 indexed vaultId, address[] recipients, uint256 claimableAt)"
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let walletAddress = null;
+let provider = null;
+let signer = null;
+let contract = null;
+let currentExtendVaultId = null;
+let activeTab = "myVaults";
+
+// ── WALLET ────────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) {
+    showToast("MetaMask not found. Please install it.");
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    await ensureNetwork();
+    await initProvider(accounts[0]);
+  } catch(e) {
+    showToast("Connection cancelled.");
+  }
+}
+
+async function initProvider(address) {
+  // Use ethers v5 via CDN (loaded below)
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  signer = provider.getSigner();
+  walletAddress = address;
+
+  const walletBtn = document.getElementById("walletBtn");
+  walletBtn.className = "btn-wallet connected";
+  walletBtn.innerHTML = `<span class="wallet-dot"></span>${truncate(address)}`;
+
+  document.getElementById("connectPrompt").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("networkBadge").style.display = "inline-flex";
+
+  // Init contract only if address is set
+  if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
+    contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+  }
+
+  await loadDashboard();
+}
+
+async function toggleWallet() {
+  if (walletAddress) {
+    // Disconnect (just clear state)
+    walletAddress = null; provider = null; signer = null; contract = null;
+    document.getElementById("walletBtn").className = "btn-wallet disconnected";
+    document.getElementById("walletBtn").textContent = "Connect Wallet";
+    document.getElementById("connectPrompt").style.display = "flex";
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("networkBadge").style.display = "none";
+  } else {
+    await connectWallet();
+  }
+}
+
+async function ensureNetwork() {
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }]
+    });
+  } catch(e) {
+    if (e.code === 4902) {
+      await window.ethereum.request({
+        method: "wallet_addEthereumChain",
+        params: [{
+          chainId: BASE_SEPOLIA_CHAIN_ID,
+          chainName: "Base Sepolia",
+          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+          rpcUrls: ["https://sepolia.base.org"],
+          blockExplorerUrls: ["https://sepolia.basescan.org"]
+        }]
+      });
+    }
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  activeTab = tab;
+  ["myVaults","incoming","activity"].forEach(t => {
+    document.getElementById("tab-"+t).style.display = t === tab ? "block" : "none";
+  });
+  document.querySelectorAll(".sidebar-item").forEach((el, i) => {
+    el.classList.toggle("active", el.textContent.trim().toLowerCase().includes(
+      tab === "myVaults" ? "my vaults" : tab === "incoming" ? "incoming" : "activity"
+    ));
+  });
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  if (!contract) {
+    // No contract deployed yet — show placeholder
+    document.getElementById("statActive").textContent = "—";
+    document.getElementById("statStaked").textContent = "—";
+    document.getElementById("statRecipients").textContent = "—";
+    document.getElementById("myVaultsList").innerHTML = `
+      <div class="empty-state">
+        <p style="margin-bottom:8px;">Contract not yet deployed to Base Sepolia.</p>
+        <p style="font-size:12px;">Coming soon — testnet deployment in progress.</p>
+      </div>`;
+    return;
+  }
+
+  try {
+    // Read vault events to find user's vaults
+    const filter = contract.filters.LegacyVaultCreated(null, walletAddress);
+    const events = await contract.queryFilter(filter, 0, "latest");
+
+    let activeCount = 0;
+    let totalStaked = BigInt(0);
+    let totalRecipients = 0;
+    const vaultCards = [];
+
+    for (const ev of events) {
+      const id = ev.args.vaultId.toNumber();
+      const [creator, expiry, vetoWindow, isClaimed, isActive] = await contract.getVaultPublicInfo(id);
+      const balance = await provider.getBalance(CONTRACT_ADDRESS);
+
+      const expiryDate = new Date(expiry.toNumber() * 1000);
+      const now = Date.now();
+      const status = isClaimed ? "claimed" : isActive && expiryDate.getTime() > now ? "active" : "expired";
+
+      if (status === "active") activeCount++;
+
+      vaultCards.push({ id, expiry: expiryDate, status, isClaimed, isActive });
+    }
+
+    document.getElementById("statActive").textContent = activeCount;
+    document.getElementById("statStaked").textContent = "—";
+    document.getElementById("statRecipients").textContent = "—";
+
+    if (vaultCards.length === 0) {
+      document.getElementById("myVaultsList").innerHTML = `
+        <div class="empty-state">
+          <p>No vaults yet.</p>
+          <button class="btn-primary" onclick="openCreateModal()">Create your first vault</button>
+        </div>`;
+    } else {
+      document.getElementById("myVaultsList").innerHTML = vaultCards.map(v => renderVaultCard(v)).join("");
+    }
+  } catch(e) {
+    console.error(e);
+    showToast("Error loading vaults: " + e.message);
+  }
+}
+
+function renderVaultCard(v) {
+  const statusLabel = v.status === "active" ? "Active" : v.status === "expired" ? "Expired" : "Claimed";
+  const expiryStr = v.expiry.toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  return `
+  <div class="vault-card">
+    <div class="vault-card-header">
+      <span class="vault-id">Vault #${v.id}</span>
+      <span class="vault-status ${v.status}">${statusLabel}</span>
+    </div>
+    <div class="vault-label">Vault #${v.id}</div>
+    <div class="vault-meta">
+      <div class="vault-meta-item">Expires <span>${expiryStr}</span></div>
+    </div>
+    <div class="vault-actions">
+      ${v.status === "active" ? `
+        <button class="btn-sm" onclick="openExtendModal(${v.id})">Extend</button>
+        <button class="btn-sm" onclick="iamAlive(${v.id})">I'm Alive ✓</button>
+        <button class="btn-sm danger" onclick="unstake(${v.id})">Unstake</button>
+      ` : v.status === "expired" ? `
+        <button class="btn-sm" onclick="notifyClaimable(${v.id})">Notify Recipients</button>
+      ` : `<span style="font-size:12px;color:var(--parchment-dim);">Claimed</span>`}
+    </div>
+  </div>`;
+}
+
+// ── CREATE VAULT ──────────────────────────────────────────────────────────────
+function openCreateModal() {
+  if (!walletAddress) { connectWallet(); return; }
+  updateEstimatedCost();
+  document.getElementById("createModal").classList.add("open");
+}
+
+function updateEstimatedCost() {
+  const duration = BigInt(document.getElementById("vaultDuration").value);
+  const cost = duration * COST_PER_SECOND + BASE_FEE;
+  document.getElementById("estimatedCost").textContent = formatEth(cost) + " ETH";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("vaultDuration").addEventListener("change", updateEstimatedCost);
+  document.getElementById("extendDuration")?.addEventListener("change", updateExtendCost);
+  updateEstimatedCost();
+});
+
+function addRecipient() {
+  const container = document.getElementById("recipientInputs");
+  const row = document.createElement("div");
+  row.className = "recipient-row";
+  row.innerHTML = `
+    <input class="form-input" placeholder="0x... wallet address" />
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(row);
+}
+
+async function createVault() {
+  if (!contract) { showToast("Contract not deployed yet."); return; }
+
+  const label = document.getElementById("vaultLabel").value.trim();
+  const dataURI = document.getElementById("vaultDataURI").value.trim();
+  const duration = parseInt(document.getElementById("vaultDuration").value);
+  const vetoWindow = parseInt(document.getElementById("vaultVetoWindow").value);
+
+  const recipientInputs = document.querySelectorAll("#recipientInputs input");
+  const addresses = Array.from(recipientInputs).map(i => i.value.trim()).filter(a => a.startsWith("0x") && a.length === 42);
+
+  if (!label) { showToast("Please enter a vault label."); return; }
+  if (addresses.length === 0) { showToast("Add at least one recipient address."); return; }
+
+  const hashes = addresses.map(a => ethers.utils.keccak256(ethers.utils.solidityPack(["address"], [a])));
+  const cost = BigInt(duration) * COST_PER_SECOND + BASE_FEE;
+
+  setTxStatus("createTxStatus", "pending", "⏳ Confirm in MetaMask...");
+  document.getElementById("createVaultBtn").disabled = true;
+
+  try {
+    const tx = await contract.createLegacyVault(
+      duration, vetoWindow, hashes, addresses, label, dataURI, false,
+      { value: cost.toString() }
+    );
+    setTxStatus("createTxStatus", "pending", "⏳ Transaction submitted...");
+    await tx.wait();
+    setTxStatus("createTxStatus", "success", "✓ Vault created!");
+    showToast("Vault created successfully.");
+    setTimeout(() => { closeModal("createModal"); loadDashboard(); }, 1500);
+  } catch(e) {
+    setTxStatus("createTxStatus", "error", "✕ " + (e.reason || e.message));
+    document.getElementById("createVaultBtn").disabled = false;
+  }
+}
+
+// ── EXTEND VAULT ──────────────────────────────────────────────────────────────
+function openExtendModal(vaultId) {
+  currentExtendVaultId = vaultId;
+  updateExtendCost();
+  document.getElementById("extendModal").classList.add("open");
+}
+
+function updateExtendCost() {
+  const duration = BigInt(document.getElementById("extendDuration").value);
+  const cost = duration * COST_PER_SECOND;
+  document.getElementById("extendCost").textContent = formatEth(cost) + " ETH";
+}
+
+async function executeExtend() {
+  if (!contract || currentExtendVaultId === null) return;
+  const duration = parseInt(document.getElementById("extendDuration").value);
+  const cost = BigInt(duration) * COST_PER_SECOND;
+
+  setTxStatus("extendTxStatus", "pending", "⏳ Confirm in MetaMask...");
+  document.getElementById("extendBtn").disabled = true;
+
+  try {
+    const tx = await contract.extendLegacyStaking(currentExtendVaultId, duration, { value: cost.toString() });
+    setTxStatus("extendTxStatus", "pending", "⏳ Transaction submitted...");
+    await tx.wait();
+    setTxStatus("extendTxStatus", "success", "✓ Vault extended!");
+    showToast("Vault extended.");
+    setTimeout(() => { closeModal("extendModal"); loadDashboard(); }, 1500);
+  } catch(e) {
+    setTxStatus("extendTxStatus", "error", "✕ " + (e.reason || e.message));
+    document.getElementById("extendBtn").disabled = false;
+  }
+}
+
+// ── VAULT ACTIONS ─────────────────────────────────────────────────────────────
+async function iamAlive(vaultId) {
+  if (!contract) return;
+  try {
+    const tx = await contract.iamAliveVeto(vaultId);
+    showToast("I'm Alive signal sent ✓");
+    await tx.wait();
+    loadDashboard();
+  } catch(e) {
+    showToast("Error: " + (e.reason || e.message));
+  }
+}
+
+async function unstake(vaultId) {
+  if (!contract) return;
+  if (!confirm("Unstake this vault? You'll receive ~95% of remaining stake back (5% fee).")) return;
+  try {
+    const tx = await contract.emergencyUnstake(vaultId);
+    showToast("Unstaking...");
+    await tx.wait();
+    showToast("Vault unstaked. ETH returned.");
+    loadDashboard();
+  } catch(e) {
+    showToast("Error: " + (e.reason || e.message));
+  }
+}
+
+async function notifyClaimable(vaultId) {
+  if (!contract) return;
+  try {
+    const tx = await contract.notifyVaultClaimable(vaultId);
+    showToast("Notifying recipients...");
+    await tx.wait();
+    showToast("Recipients notified on-chain ✓");
+  } catch(e) {
+    showToast("Error: " + (e.reason || e.message));
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+
+function setTxStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = "tx-status " + type;
+  el.textContent = msg;
+}
+
+function truncate(addr) {
+  return addr.slice(0,6) + "..." + addr.slice(-4);
+}
+
+function formatEth(wei) {
+  const eth = Number(wei) / 1e18;
+  return eth.toFixed(eth < 0.01 ? 6 : 4);
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+// Auto-connect if already authorized
+window.addEventListener("load", async () => {
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (accounts.length > 0) {
+      await initProvider(accounts[0]);
+    }
+    window.ethereum.on("accountsChanged", async (accs) => {
+      if (accs.length > 0) await initProvider(accs[0]);
+      else toggleWallet();
+    });
+    window.ethereum.on("chainChanged", () => window.location.reload());
+  }
+});
+</script>
+
+<!-- Ethers.js v5 -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+</body>
+</html>
