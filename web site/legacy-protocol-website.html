@@ -462,6 +462,13 @@
   .road-item p { font-size: 14.5px; color: var(--parchment-dim); max-width: 560px; line-height: 1.6; }
   .road-item .seal { margin-top: 12px; }
 
+  /* Completed / in-progress items stand out */
+  .road-item.is-live { background: rgba(138,155,142,0.07); border-left: 3px solid var(--status-live); border-radius: 6px; padding-left: 73px; }
+  .road-item.is-partial { background: rgba(196,103,58,0.07); border-left: 3px solid var(--status-partial); border-radius: 6px; padding-left: 73px; }
+  .road-item.is-live h4, .road-item.is-partial h4 { color: var(--parchment); }
+  .road-item.is-planned { opacity: 0.55; }
+  .road-item.is-planned h4 { color: var(--parchment-dim); }
+
   /* ============ CTA ============ */
   .cta {
     border-radius: 8px;
@@ -769,42 +776,42 @@
     <div class="roadmap">
       <div class="roadmap-line"></div>
 
-      <div class="road-item">
+      <div class="road-item is-partial">
         <div class="road-dot partial">0</div>
         <h4>Contract hardening</h4>
         <p>Internal security review complete across multiple passes. Independent third-party audit and formal verification still ahead.</p>
         <span class="seal seal-partial">In progress</span>
       </div>
 
-      <div class="road-item">
+      <div class="road-item is-live">
         <div class="road-dot live">1</div>
         <h4>Core vault product</h4>
         <p>Vault creation, extension, claims, disputes, and on-chain governance — deployable today on ETH-denominated fees.</p>
         <span class="seal seal-live">Live</span>
       </div>
 
-      <div class="road-item">
+      <div class="road-item is-planned">
         <div class="road-dot planned">2</div>
         <h4>LGY token & vesting</h4>
         <p>ERC-20 contract, SAFT-aligned vesting, and migration of fees from ETH to LGY through the existing governance path.</p>
         <span class="seal seal-planned">Planned</span>
       </div>
 
-      <div class="road-item">
+      <div class="road-item is-planned">
         <div class="road-dot planned">3</div>
         <h4>Decentralized storage</h4>
         <p>Node network or integration with existing decentralized storage, plus client-side Shamir's Secret Sharing for key distribution.</p>
         <span class="seal seal-planned">Planned</span>
       </div>
 
-      <div class="road-item">
+      <div class="road-item is-planned">
         <div class="road-dot planned">4</div>
         <h4>Claims adjudication</h4>
         <p>Automated, human, and jury-based review tiers for contested claims at scale — layered on top of the signature-verified claim step that already works.</p>
         <span class="seal seal-planned">Planned</span>
       </div>
 
-      <div class="road-item">
+      <div class="road-item is-planned">
         <div class="road-dot planned">5</div>
         <h4>True zero-knowledge discovery</h4>
         <p>Cryptographic proof of recipiency that reveals nothing under direct chain inspection — a research-stage goal, sequenced last.</p>
