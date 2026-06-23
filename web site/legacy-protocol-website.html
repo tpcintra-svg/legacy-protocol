@@ -705,6 +705,125 @@
       </div>
     </div>
 
+    <!-- Token allocation chart -->
+    <div style="margin-top:64px;">
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:8px; color:var(--parchment);">Token Allocation <span class="seal seal-planned" style="vertical-align:middle;">Planned</span></h3>
+      <p style="font-size:14px; color:var(--parchment-dim); margin-bottom:32px;">1,000,000,000 LGY fixed supply</p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:48px; align-items:center; justify-content:center;">
+        <!-- Donut chart -->
+        <div style="position:relative; flex-shrink:0;">
+          <svg id="lgy-chart" width="260" height="260" viewBox="0 0 260 260"></svg>
+          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none;">
+            <div id="chart-pct" style="font-family:var(--display); font-size:2rem; color:var(--parchment); line-height:1;">100%</div>
+            <div id="chart-label" style="font-size:11px; color:var(--parchment-dim); margin-top:4px; max-width:80px; line-height:1.4;">Total Supply</div>
+          </div>
+        </div>
+
+        <!-- Legend + burn toggle -->
+        <div style="flex:1; min-width:240px;">
+          <div id="lgy-legend" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+          <div style="margin-top:28px; padding:16px; border:1px solid var(--line-bright); border-radius:6px; background:rgba(196,103,58,0.06);">
+            <p style="font-size:13px; color:var(--parchment-dim); margin-bottom:12px;">After 90-day BTC claim window:</p>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; color:var(--parchment);">
+              <input type="checkbox" id="burn-toggle" style="width:16px; height:16px; accent-color:var(--amber); cursor:pointer;">
+              Show post-burn supply (unclaimed BTC tokens burned)
+            </label>
+            <p id="burn-note" style="display:none; margin-top:10px; font-size:12px; color:var(--amber); line-height:1.6;">
+              Up to 100M LGY permanently removed from supply — circulating supply drops by up to 10%, increasing scarcity for all remaining holders.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      const segments = [
+        { label: 'Web3 Core Dev & Validators', pct: 40, color: '#8A9B8E' },
+        { label: 'Airdrop Infrastructure & Marketing', pct: 20, color: '#C4B896' },
+        { label: 'R&D', pct: 15, color: '#6B7785' },
+        { label: 'Seed Round', pct: 10, color: '#C4673A' },
+        { label: 'BTC Holder Airdrop', pct: 10, color: '#E8813A', burnable: true },
+        { label: 'Pre-Seed Round', pct: 5, color: '#E8E3D8' },
+      ];
+
+      const cx = 130, cy = 130, R = 110, r = 68;
+      const svg = document.getElementById('lgy-chart');
+      const legend = document.getElementById('lgy-legend');
+      const pctEl = document.getElementById('chart-pct');
+      const labelEl = document.getElementById('chart-label');
+
+      function polar(cx, cy, radius, angleDeg) {
+        const a = (angleDeg - 90) * Math.PI / 180;
+        return [cx + radius * Math.cos(a), cy + radius * Math.sin(a)];
+      }
+
+      function arc(seg, startDeg, endDeg, dimmed) {
+        const large = endDeg - startDeg > 180 ? 1 : 0;
+        const [x1, y1] = polar(cx, cy, R, startDeg);
+        const [x2, y2] = polar(cx, cy, R, endDeg - 0.3);
+        const [x3, y3] = polar(cx, cy, r, endDeg - 0.3);
+        const [x4, y4] = polar(cx, cy, r, startDeg);
+        return `M ${x1} ${y1} A ${R} ${R} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${r} ${r} 0 ${large} 0 ${x4} ${y4} Z`;
+      }
+
+      let paths = [];
+
+      function render(burned) {
+        svg.innerHTML = '';
+        let start = 0;
+        const total = burned ? 90 : 100;
+
+        segments.forEach((seg, i) => {
+          if (burned && seg.burnable) return;
+          const displayPct = burned ? (seg.pct / total * 100) : seg.pct;
+          const sweep = (seg.pct / total) * 360;
+          const end = start + sweep;
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', arc(seg, start, end));
+          path.setAttribute('fill', seg.color);
+          path.setAttribute('opacity', burned && seg.burnable ? '0.2' : '0.85');
+          path.style.transition = 'opacity 0.2s';
+          path.style.cursor = 'pointer';
+          path.addEventListener('mouseenter', () => {
+            path.setAttribute('opacity', '1');
+            pctEl.textContent = (burned ? displayPct.toFixed(1) : seg.pct) + '%';
+            labelEl.textContent = seg.label;
+          });
+          path.addEventListener('mouseleave', () => {
+            path.setAttribute('opacity', burned && seg.burnable ? '0.2' : '0.85');
+            pctEl.textContent = burned ? '90%' : '100%';
+            labelEl.textContent = burned ? 'Post-burn Supply' : 'Total Supply';
+          });
+          svg.appendChild(path);
+          start = end;
+        });
+
+        pctEl.textContent = burned ? '90%' : '100%';
+        labelEl.textContent = burned ? 'Post-burn Supply' : 'Total Supply';
+      }
+
+      // Legend
+      segments.forEach(seg => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; align-items:center; gap:10px;';
+        row.innerHTML = `<span style="width:12px; height:12px; border-radius:2px; background:${seg.color}; flex-shrink:0;"></span>
+          <span style="font-size:13px; color:var(--parchment-dim); flex:1;">${seg.label}</span>
+          <span style="font-size:13px; font-weight:600; color:var(--parchment); font-family:var(--display);">${seg.pct}%</span>`;
+        legend.appendChild(row);
+      });
+
+      render(false);
+
+      document.getElementById('burn-toggle').addEventListener('change', function() {
+        render(this.checked);
+        document.getElementById('burn-note').style.display = this.checked ? 'block' : 'none';
+      });
+    })();
+    </script>
+
     <!-- Investment rounds -->
     <div style="margin-top:64px;">
       <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">Investment Rounds <span class="seal seal-planned" style="vertical-align:middle;">Planned</span></h3>
