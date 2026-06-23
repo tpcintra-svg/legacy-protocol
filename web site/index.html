@@ -96,16 +96,14 @@
   }
   .brand-mark {
     width: 30px; height: 30px;
-    border: 1.5px solid var(--sage);
-    border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     position: relative;
   }
   .brand-mark::before {
     content: '';
-    width: 7px; height: 7px;
+    width: 0px; height: 0px;
     border-radius: 50%;
-    background: var(--amber);
+    background: transparent;
   }
   .nav-links {
     display: flex;
@@ -526,7 +524,16 @@
 <nav>
   <div class="wrap nav-inner">
     <div class="brand">
-      <span class="brand-mark"></span>
+      <svg class="brand-mark" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="14" fill="#06101f"/>
+        <!-- shackle -->
+        <path d="M10 13V10C10 7.24 11.79 5.5 14 5.5C16.21 5.5 18 7.24 18 10V13" stroke="#4FC3F7" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <!-- body -->
+        <rect x="7" y="13" width="14" height="10" rx="2.5" stroke="#4FC3F7" stroke-width="1.5" fill="rgba(79,195,247,0.08)"/>
+        <!-- keyhole -->
+        <circle cx="14" cy="17.5" r="1.8" fill="#4FC3F7"/>
+        <rect x="13.3" y="17.5" width="1.4" height="3" rx="0.7" fill="#4FC3F7"/>
+      </svg>
       Legacy Protocol
     </div>
     <div class="nav-links">
