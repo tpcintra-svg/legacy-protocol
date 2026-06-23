@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legacy Protocol — A Trustless Dead Man's Switch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0B0F14;
+    --ink-soft: #131920;
+    --parchment: #E8E3D8;
+    --parchment-dim: #C9C2B2;
+    --sage: #8A9B8E;
+    --sage-dim: #5E6E63;
+    --amber: #C4673A;
+    --amber-bright: #DD8458;
+    --slate: #4A5D6B;
+    --line: rgba(232, 227, 216, 0.14);
+    --line-bright: rgba(232, 227, 216, 0.28);
+
+    --status-live: #8A9B8E;
+    --status-live-bg: rgba(138, 155, 142, 0.12);
+    --status-partial: #C4673A;
+    --status-partial-bg: rgba(196, 103, 58, 0.12);
+    --status-planned: #6B7785;
+    --status-planned-bg: rgba(107, 119, 133, 0.12);
+
+    --display: 'Fraunces', serif;
+    --body: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 20px; }
+  }
+
+  /* ============ Texture / Atmosphere ============ */
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  /* ============ Nav ============ */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(11, 15, 20, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 76px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--display);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .brand-mark {
+    width: 30px; height: 30px;
+    border: 1.5px solid var(--sage);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .brand-mark::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+  .nav-links {
+    display: flex;
+    gap: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--parchment-dim);
+  }
+  .nav-links a { transition: color 0.2s; }
+  .nav-links a:hover { color: var(--parchment); }
+  @media (max-width: 800px) { .nav-links { display: none; } }
+
+  /* ============ Hero ============ */
+  .hero {
+    position: relative;
+    padding: 200px 0 140px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(138,155,142,0.10) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: rise 0.8s ease-out 0.1s forwards;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 22px; height: 1px;
+    background: var(--sage);
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(40px, 6.4vw, 78px);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+    max-width: 880px;
+    color: var(--parchment);
+    opacity: 0;
+    animation: rise 0.9s ease-out 0.25s forwards;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--amber-bright);
+    font-weight: 400;
+  }
+  .hero-sub {
+    margin-top: 28px;
+    max-width: 560px;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--parchment-dim);
+    opacity: 0;
+    animation: rise 0.9s ease-out 0.4s forwards;
+  }
+  .hero-actions {
+    margin-top: 44px;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: rise 0.9s ease-out 0.55s forwards;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 28px;
+    font-family: var(--body);
+    font-size: 14.5px;
+    font-weight: 600;
+    border-radius: 3px;
+    transition: all 0.25s;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: var(--parchment);
+    color: var(--ink);
+  }
+  .btn-primary:hover { background: var(--amber-bright); color: var(--ink); transform: translateY(-1px); }
+  .btn-ghost {
+    border-color: var(--line-bright);
+    color: var(--parchment);
+  }
+  .btn-ghost:hover { border-color: var(--sage); background: rgba(138,155,142,0.08); }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ Honesty banner (the signature element) ============ */
+  .candor {
+    margin-top: 90px;
+    border: 1px solid var(--line-bright);
+    border-radius: 4px;
+    background: var(--ink-soft);
+    padding: 30px 36px;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    opacity: 0;
+    animation: rise 0.9s ease-out 0.7s forwards;
+  }
+  .candor-seal {
+    flex-shrink: 0;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: 1.5px solid var(--sage);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display);
+    font-size: 22px;
+    font-style: italic;
+    color: var(--sage);
+  }
+  .candor-text h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 17px;
+    margin-bottom: 8px;
+    color: var(--parchment);
+  }
+  .candor-text p {
+    font-size: 14.5px;
+    color: var(--parchment-dim);
+    line-height: 1.65;
+    max-width: 620px;
+  }
+  .candor-text a { color: var(--amber-bright); border-bottom: 1px solid rgba(221,132,88,0.4); }
+
+  @media (max-width: 640px) {
+    .candor { flex-direction: column; padding: 24px; }
+  }
+
+  /* ============ Section scaffolding ============ */
+  section { position: relative; padding: 120px 0; }
+  .section-head { max-width: 640px; margin-bottom: 64px; }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber-bright);
+    margin-bottom: 18px;
+    display: block;
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.12;
+    color: var(--parchment);
+  }
+  .section-sub {
+    margin-top: 18px;
+    font-size: 16.5px;
+    color: var(--parchment-dim);
+    line-height: 1.65;
+  }
+
+  /* ============ Status seal component ============ */
+  .seal {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 13px 5px 10px;
+    border-radius: 100px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .seal::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .seal-live { background: var(--status-live-bg); color: var(--status-live); }
+  .seal-live::before { background: var(--status-live); box-shadow: 0 0 6px var(--status-live); }
+  .seal-partial { background: var(--status-partial-bg); color: var(--status-partial); }
+  .seal-partial::before { background: var(--status-partial); }
+  .seal-planned { background: var(--status-planned-bg); color: var(--status-planned); }
+  .seal-planned::before { background: var(--status-planned); }
+
+  /* ============ Problem section ============ */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .problem-card {
+    background: var(--ink);
+    padding: 40px 34px;
+  }
+  .problem-num {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--sage);
+    margin-bottom: 24px;
+  }
+  .problem-card h3 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 21px;
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+  .problem-card p { font-size: 14.5px; color: var(--parchment-dim); }
+  @media (max-width: 880px) {
+    .problem-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ============ Architecture / feature rows ============ */
+  .feature-row {
+    display: grid;
+    grid-template-columns: 280px 1fr 140px;
+    gap: 40px;
+    align-items: start;
+    padding: 36px 0;
+    border-top: 1px solid var(--line);
+  }
+  .feature-row:last-child { border-bottom: 1px solid var(--line); }
+  .feature-title {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--parchment);
+  }
+  .feature-desc { font-size: 15px; color: var(--parchment-dim); line-height: 1.65; }
+  .feature-status { display: flex; justify-content: flex-end; }
+  @media (max-width: 880px) {
+    .feature-row { grid-template-columns: 1fr; gap: 14px; }
+    .feature-status { justify-content: flex-start; }
+  }
+
+  /* ============ Flow diagram ============ */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-top: 56px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 170px;
+    text-align: center;
+    padding: 0 20px;
+    position: relative;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -4px; top: 26px;
+    color: var(--sage-dim);
+    font-size: 18px;
+  }
+  .flow-icon {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-bright);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 18px;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 19px;
+    color: var(--amber-bright);
+    background: var(--ink-soft);
+  }
+  .flow-step h4 { font-size: 14.5px; font-weight: 600; margin-bottom: 8px; }
+  .flow-step p { font-size: 12.5px; color: var(--parchment-dim); line-height: 1.5; }
+
+  /* ============ Tokenomics warning block ============ */
+  .warn-block {
+    border: 1px solid rgba(196,103,58,0.35);
+    background: rgba(196,103,58,0.06);
+    border-radius: 4px;
+    padding: 26px 30px;
+    margin-bottom: 56px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .warn-block .mark { font-family: var(--mono); color: var(--amber); font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+  .warn-block p { font-size: 14.5px; color: var(--parchment); line-height: 1.6; }
+  .warn-block strong { color: var(--amber-bright); }
+
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .token-card {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px 22px;
+    text-align: center;
+  }
+  .token-num { font-family: var(--display); font-size: 30px; font-weight: 500; color: var(--sage); margin-bottom: 8px; }
+  .token-label { font-size: 13px; color: var(--parchment-dim); }
+  @media (max-width: 880px) { .token-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ============ Roadmap ============ */
+  .roadmap {
+    position: relative;
+    margin-top: 50px;
+  }
+  .roadmap-line {
+    position: absolute;
+    left: 27px; top: 8px; bottom: 8px;
+    width: 1px;
+    background: var(--line-bright);
+  }
+  .road-item {
+    position: relative;
+    padding-left: 76px;
+    padding-bottom: 44px;
+  }
+  .road-item:last-child { padding-bottom: 0; }
+  .road-dot {
+    position: absolute;
+    left: 16px; top: 2px;
+    width: 23px; height: 23px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  .road-dot.live { background: var(--status-live); color: var(--ink); }
+  .road-dot.partial { background: var(--status-partial); color: var(--ink); }
+  .road-dot.planned { background: var(--ink-soft); border-color: var(--line-bright); color: var(--parchment-dim); }
+  .road-item h4 { font-family: var(--display); font-size: 19px; font-weight: 500; margin-bottom: 8px; }
+  .road-item p { font-size: 14.5px; color: var(--parchment-dim); max-width: 560px; line-height: 1.6; }
+  .road-item .seal { margin-top: 12px; }
+
+  /* ============ CTA ============ */
+  .cta {
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--ink-soft) 0%, #1a2129 100%);
+    border: 1px solid var(--line-bright);
+    padding: 80px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta::before {
+    content: '';
+    position: absolute;
+    bottom: -120px; left: 50%;
+    transform: translateX(-50%);
+    width: 500px; height: 300px;
+    background: radial-gradient(ellipse, rgba(196,103,58,0.12) 0%, transparent 70%);
+  }
+  .cta h2 { max-width: 600px; margin: 0 auto 20px; }
+  .cta p { max-width: 480px; margin: 0 auto 36px; color: var(--parchment-dim); font-size: 16px; }
+  .cta .hero-actions { justify-content: center; margin-top: 0; opacity: 1; animation: none; }
+  @media (max-width: 640px) { .cta { padding: 56px 28px; } }
+
+  /* ============ Footer ============ */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 48px 0;
+  }
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footer-brand { font-family: var(--display); font-size: 15px; color: var(--parchment-dim); }
+  .footer-links { display: flex; gap: 28px; font-size: 13.5px; color: var(--parchment-dim); }
+  .footer-links a:hover { color: var(--parchment); }
+
+  ::selection { background: var(--amber); color: var(--ink); }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .eyebrow, h1, .hero-sub, .hero-actions, .candor { animation: none !important; opacity: 1 !important; }
+  }
+
+  /* Focus visibility */
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3px; }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      Legacy Protocol
+    </div>
+    <div class="nav-links">
+      <a href="#problem">The Problem</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#tokenomics">Tokenomics</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+    <a href="#contact" class="btn btn-ghost" style="padding:10px 20px; font-size:13px;">Get in touch</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Pre-Seed · BASE Network</span>
+    <h1>What you can't say<br>out loud, <em>say later.</em></h1>
+    <p class="hero-sub">Legacy Protocol is a non-custodial dead man's switch for encrypted material — wills, keys, evidence — that releases to the people you choose, on your timeline, with no one holding custody but you.</p>
+    <div class="hero-actions">
+      <a href="mailto:ceo@legacyprotocol.io?subject=Request%3A%20Legacy%20Protocol%20Pitch%20Deck&body=Hi%20Tomas%2C%0A%0AI%20came%20across%20Legacy%20Protocol%20and%20would%20like%20to%20learn%20more.%20Could%20you%20share%20the%20pitch%20deck%3F%0A%0A" class="btn btn-primary">Request the deck</a>
+      <a href="#architecture" class="btn btn-ghost">See what's built</a>
+    </div>
+
+    <div class="candor">
+      <div class="candor-seal">i</div>
+      <div class="candor-text">
+        <h3>Every claim on this page is labeled.</h3>
+        <p><span class="seal seal-live" style="margin-right:4px;">Live</span> means it exists in the audited contract today. <span class="seal seal-planned" style="margin-right:4px;">Planned</span> means it's on the roadmap, not the chain. We'd rather you trust less of what we say and verify more of it — see the <a href="#contact">contract source</a> yourself.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="problem">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">The Problem</span>
+      <h2>Digital legacies have no trustless path to the right hands.</h2>
+      <p class="section-sub">Whistleblowers, heirs, and key holders all face the same structural gap: there's no way to guarantee sensitive material reaches someone else, only if something happens to you — without trusting a person, a company, or a single point of failure.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-num">01</div>
+        <h3>The Whistleblower Vulnerability</h3>
+        <p>Informants and journalists have no trustless way to secure an "insurance vault." If they're compromised, the truth they were holding disappears with them.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-num">02</div>
+        <h3>The Single-Beneficiary Bottleneck</h3>
+        <p>Most succession tools support one static recipient. There's no way to release the same material to several people — family, lawyers, press — at once.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-num">03</div>
+        <h3>Metadata Harvesting</h3>
+        <p>Centralized escrow leaks who's connected to what. An attacker watching the chain shouldn't be able to tell that you have anything locked away at all.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">How It Works</span>
+      <h2>One non-custodial vault. Multiple recipients. Your terms.</h2>
+      <p class="section-sub">A creator locks encrypted material in a smart contract, names who can claim it, and sets the window for disputing a false claim. Nothing here requires us, or anyone, to hold a key on your behalf.</p>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-icon">1</div>
+        <h4>Create vault</h4>
+        <p>Lock an encrypted reference, set a duration and challenge window.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">2</div>
+        <h4>Name recipients</h4>
+        <p>Up to 50 designated addresses, each independently able to claim.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">3</div>
+        <h4>Time or claim</h4>
+        <p>Releases on a timer, or sooner via a signed emergency claim.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">4</div>
+        <h4>Challenge window</h4>
+        <p>You're alive? One signature cancels any false claim outright.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-icon">5</div>
+        <h4>Recipient claims</h4>
+        <p>Signature-verified access, with a year of free re-download after.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:80px;">
+      <div class="feature-row">
+        <div class="feature-title">Multi-recipient vaults</div>
+        <div class="feature-desc">Name up to 50 recipients per vault, each able to claim independently once the vault unlocks — no single point of failure on the receiving end.</div>
+        <div class="feature-status"><span class="seal seal-live">Live</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">Signature-verified claims</div>
+        <div class="feature-desc">Claims are authorized by a cryptographic signature bound to the claimant's address, the vault, and a one-time nonce — never a value exposed on-chain that anyone could copy and reuse.</div>
+        <div class="feature-status"><span class="seal seal-live">Live</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">Creator veto window</div>
+        <div class="feature-desc">A challenge window from 72 hours to 30 days, chosen by the creator. A single signature from the creator cancels a false claim outright.</div>
+        <div class="feature-status"><span class="seal seal-live">Live</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">365-day recovery window</div>
+        <div class="feature-desc">Once claimed, a recipient gets a full year of free re-access — protection against a corrupted download or a lost device, at no extra cost.</div>
+        <div class="feature-status"><span class="seal seal-live">Live</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">On-chain governance</div>
+        <div class="feature-desc">Protocol-level changes require 3-of-6 independent approvals and a mandatory 14-day public delay before they take effect. No single key, including ours, can act alone.</div>
+        <div class="feature-status"><span class="seal seal-live">Live</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">Private discovery</div>
+        <div class="feature-desc">The public app exposes no list of active vaults or recipients. True zero-knowledge proof of recipiency — so even direct chain inspection reveals nothing — is a research-stage goal, not yet implemented.</div>
+        <div class="feature-status"><span class="seal seal-partial">Partial</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">Decentralized storage network</div>
+        <div class="feature-desc">Sharding the decryption key across independent, blind-routing nodes via Shamir's Secret Sharing. Today, vaults can reference any storage a creator chooses, including existing decentralized options.</div>
+        <div class="feature-status"><span class="seal seal-planned">Planned</span></div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-title">Multi-stage claims adjudication</div>
+        <div class="feature-desc">Automated document review, a human review tier, and a decentralized jury for contested claims at scale. The chain already supports the final signed-claim step; the review stages do not yet exist.</div>
+        <div class="feature-status"><span class="seal seal-planned">Planned</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tokenomics">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Token Economics</span>
+      <h2>The planned model — and what's actually deployed.</h2>
+    </div>
+
+    <div class="warn-block">
+      <span class="mark">!</span>
+      <p><strong>No LGY token exists yet.</strong> Every fee in the live contract today is paid in ETH. What follows is the model we intend to build toward — not a description of something already running.</p>
+    </div>
+
+    <div class="token-grid">
+      <div class="token-card">
+        <div class="token-num">1B</div>
+        <div class="token-label">Fixed supply <span class="seal seal-planned">Planned</span></div>
+      </div>
+      <div class="token-card">
+        <div class="token-num">80/8/7/5</div>
+        <div class="token-label">Fee split — logic live, in ETH <span class="seal seal-partial">Partial</span></div>
+      </div>
+      <div class="token-card">
+        <div class="token-num">3-of-6</div>
+        <div class="token-label">Governance approval <span class="seal seal-live">Live</span></div>
+      </div>
+      <div class="token-card">
+        <div class="token-num">14d</div>
+        <div class="token-label">Mandatory timelock <span class="seal seal-live">Live</span></div>
+      </div>
+    </div>
+
+    <!-- Investment rounds -->
+    <div style="margin-top:64px;">
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">Investment Rounds <span class="seal seal-planned" style="vertical-align:middle;">Planned</span></h3>
+      <div class="token-grid">
+        <div class="token-card" style="grid-column: span 2;">
+          <div class="token-num" style="font-size:1.4rem;">Pre-Seed &mdash; $250,000</div>
+          <div class="token-label" style="margin-top:12px; line-height:1.8;">
+            5% of supply &nbsp;·&nbsp; 50M LGY &nbsp;·&nbsp; $0.005/token<br>
+            SAFT structure &nbsp;·&nbsp; 12-month cliff &nbsp;·&nbsp; 24-month linear vesting<br>
+            <span style="font-size:0.82rem; color:var(--sage); margin-top:8px; display:block;">
+              Use of funds: 40% core development &nbsp;·&nbsp; 25% security audit (CertiK/Hacken) &nbsp;·&nbsp; 20% infrastructure &amp; airdrop tooling &nbsp;·&nbsp; 15% Swiss foundation
+            </span>
+          </div>
+        </div>
+        <div class="token-card" style="grid-column: span 2;">
+          <div class="token-num" style="font-size:1.4rem;">Seed &mdash; $1,500,000</div>
+          <div class="token-label" style="margin-top:12px; line-height:1.8;">
+            10% of supply &nbsp;·&nbsp; 100M LGY &nbsp;·&nbsp; $0.015/token<br>
+            Post-MVP &nbsp;·&nbsp; Live product with proven traction
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BTC Holder Airdrop -->
+    <div style="margin-top:64px;">
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">BTC Holder Airdrop <span class="seal seal-planned" style="vertical-align:middle;">Planned</span></h3>
+      <div class="token-grid">
+        <div class="token-card">
+          <div class="token-num">100M</div>
+          <div class="token-label">LGY allocated to BTC holders</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">90d</div>
+          <div class="token-label">Claim window — unclaimed tokens burned</div>
+        </div>
+        <div class="token-card" style="grid-column: span 2;">
+          <div class="token-num" style="font-size:1rem; font-family:var(--body); font-weight:400; line-height:1.8; text-align:left;">
+            BTC holders submit their public key — tokens are transferred automatically, no registration or KYC required. Airdrop tokens are <strong>Soulbound</strong>: usable only to pay for vault time on the protocol, not tradeable on exchanges. Any unclaimed tokens after 90 days are permanently burned.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validator staking -->
+    <div style="margin-top:64px;">
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">Validator Network <span class="seal seal-planned" style="vertical-align:middle;">Planned</span></h3>
+      <div class="token-grid">
+        <div class="token-card">
+          <div class="token-num">$5,000</div>
+          <div class="token-label">Standard node collateral (in LGY)</div>
+        </div>
+        <div class="token-card">
+          <div class="token-num">$25,000</div>
+          <div class="token-label">Whistleblower node collateral (in LGY)</div>
+        </div>
+        <div class="token-card" style="grid-column: span 2;">
+          <div class="token-num" style="font-size:1rem; font-family:var(--body); font-weight:400; line-height:1.8; text-align:left;">
+            Early validators receive bonus LGY allocation from the ecosystem pool as an incentive to bootstrap the network. All protocol services — including decentralized storage fees (Arweave cost + 10% margin) — are paid in LGY.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Roadmap</span>
+      <h2>Sequenced by what each phase actually depends on.</h2>
+      <p class="section-sub">Not by ambition. Each phase below requires the one before it to be real first.</p>
+    </div>
+
+    <div class="roadmap">
+      <div class="roadmap-line"></div>
+
+      <div class="road-item">
+        <div class="road-dot partial">0</div>
+        <h4>Contract hardening</h4>
+        <p>Internal security review complete across multiple passes. Independent third-party audit and formal verification still ahead.</p>
+        <span class="seal seal-partial">In progress</span>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot live">1</div>
+        <h4>Core vault product</h4>
+        <p>Vault creation, extension, claims, disputes, and on-chain governance — deployable today on ETH-denominated fees.</p>
+        <span class="seal seal-live">Live</span>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot planned">2</div>
+        <h4>LGY token & vesting</h4>
+        <p>ERC-20 contract, SAFT-aligned vesting, and migration of fees from ETH to LGY through the existing governance path.</p>
+        <span class="seal seal-planned">Planned</span>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot planned">3</div>
+        <h4>Decentralized storage</h4>
+        <p>Node network or integration with existing decentralized storage, plus client-side Shamir's Secret Sharing for key distribution.</p>
+        <span class="seal seal-planned">Planned</span>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot planned">4</div>
+        <h4>Claims adjudication</h4>
+        <p>Automated, human, and jury-based review tiers for contested claims at scale — layered on top of the signature-verified claim step that already works.</p>
+        <span class="seal seal-planned">Planned</span>
+      </div>
+
+      <div class="road-item">
+        <div class="road-dot planned">5</div>
+        <h4>True zero-knowledge discovery</h4>
+        <p>Cryptographic proof of recipiency that reveals nothing under direct chain inspection — a research-stage goal, sequenced last.</p>
+        <span class="seal seal-planned">Planned</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="cta">
+      <span class="kicker" style="justify-content:center; display:flex;">Pre-Seed Round</span>
+      <h2>Built on what's real. Designed for what's next.</h2>
+      <p>We're raising to take the audited core from testnet to mainnet, and to fund the independent security audit that comes before anyone's funds touch it.</p>
+      <div class="hero-actions">
+        <a href="mailto:ceo@legacyprotocol.io" class="btn btn-primary">ceo@legacyprotocol.io</a>
+        <a href="LGY_Whitepaper_Rev2026_2.pdf" class="btn btn-secondary" target="_blank" download>Download White Paper</a>
+      </div>
+    </div>
+
+    <!-- Investor update signup -->
+    <div style="max-width:480px; margin:64px auto 0; text-align:center;">
+      <p style="font-family:var(--display); font-size:1.15rem; color:var(--parchment); margin-bottom:8px;">Stay updated on our progress</p>
+      <p style="font-size:0.9rem; color:var(--parchment-dim); margin-bottom:28px;">Leave your email and we'll send you roadmap updates, audit results, and launch announcements — nothing else.</p>
+
+      <!-- Mailchimp embedded form (styled to match site) -->
+      <form action="https://legacyprotocol.us2.list-manage.com/subscribe/post?u=8f82f281ad1691546011598f0&amp;id=004f6fd32d&amp;f_id=00e596e3f0" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" target="_blank" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <input type="email" name="EMAIL" placeholder="your@email.com" required
+          style="flex:1; min-width:220px; padding:12px 16px; background:rgba(232,227,216,0.08); border:1px solid var(--line-bright); border-radius:6px; color:var(--parchment); font-family:var(--body); font-size:0.95rem; outline:none;">
+        <!-- bot protection - do not remove -->
+        <div style="position:absolute;left:-5000px;" aria-hidden="true">
+          <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
+        </div>
+        <button type="submit" name="subscribe"
+          style="padding:12px 24px; background:var(--amber); border:none; border-radius:6px; color:#fff; font-family:var(--body); font-size:0.95rem; font-weight:600; cursor:pointer; transition:background 0.2s;"
+          onmouseover="this.style.background='var(--amber-bright)'" onmouseout="this.style.background='var(--amber)'">
+          Get Updates
+        </button>
+      </form>
+      <p style="font-size:0.78rem; color:var(--sage-dim); margin-top:12px;">No spam. Unsubscribe anytime.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="footer-brand">Legacy Protocol</div>
+    <div class="footer-links">
+      <a href="#architecture">Architecture</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

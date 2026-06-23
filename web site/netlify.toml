@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/"
+  to = "/legacy-protocol-website.html"
+  status = 200
