@@ -1,0 +1,4 @@
+.netlify
+netlify.toml
+*.docx
+index.OLD-backup.html
