@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lt">
+<html lang="zh-Hans">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Legacy Protocol — nepriklausomas nuo tarpininkų „dead man's switch“</title>
+<title>Legacy Protocol — 无需信任的死人开关</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -515,6 +515,34 @@
 
   /* Focus visibility */
   a:focus-visible, button:focus-visible { outline: 2px solid var(--amber-bright); outline-offset: 3px; }
+
+  /* ============ Language switcher ============ */
+  .lang-switch { position: relative; }
+  .lang-switch-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--ink-soft);
+    border: 1px solid var(--line-bright);
+    border-radius: 6px;
+    min-width: 160px;
+    padding: 6px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    z-index: 60;
+  }
+  .lang-switch-menu.is-open { display: block; }
+  .lang-switch-item {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    color: var(--parchment-dim);
+    transition: background 0.15s, color 0.15s;
+  }
+  .lang-switch-item:hover { background: rgba(138,155,142,0.1); color: var(--parchment); }
+  .lang-switch-item.is-current { color: var(--amber-bright); font-weight: 600; cursor: default; pointer-events: none; }
+  [dir="rtl"] .lang-switch-menu { right: auto; left: 0; }
 </style>
 </head>
 <body>
@@ -536,35 +564,45 @@
       Legacy Protocol
     </div>
     <div class="nav-links">
-      <a href="#problem">Problema</a>
-      <a href="#architecture">Architektūra</a>
-      <a href="#tokenomics">Tokenomika</a>
-      <a href="#roadmap">Planas</a>
+      <a href="#problem">问题</a>
+      <a href="#architecture">架构</a>
+      <a href="#tokenomics">代币经济</a>
+      <a href="#roadmap">路线图</a>
     </div>
-    <a href="legacy-protocol-website.html" class="btn btn-ghost" style="padding:10px 20px; font-size:13px; display:flex; align-items:center; gap:6px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      English
-    </a>
-    <a href="#contact" class="btn btn-ghost" style="padding:10px 20px; font-size:13px;">Susisiekite</a>
+    <div class="lang-switch" id="lang-switch">
+      <button class="btn btn-ghost" id="lang-switch-trigger" aria-haspopup="true" aria-expanded="false" style="padding:10px 16px; font-size:13px; display:flex; align-items:center; gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        中文
+      </button>
+      <div class="lang-switch-menu" id="lang-switch-menu">
+        <a href="../index.html" class="lang-switch-item">English</a>
+        <a href="../es/index.html" class="lang-switch-item">Español</a>
+        <a href="../fr/index.html" class="lang-switch-item">Français</a>
+        <a href="../ru/index.html" class="lang-switch-item">Русский</a>
+        <a href="index.html" class="lang-switch-item is-current">中文</a>
+        <a href="../ar/index.html" class="lang-switch-item">العربية</a>
+      </div>
+    </div>
+    <a href="#contact" class="btn btn-ghost" style="padding:10px 20px; font-size:13px;">联系我们</a>
   </div>
 </nav>
 
 <header class="hero">
   <div class="wrap">
-    <span class="eyebrow">Pre-Seed etapas · BASE tinklas</span>
-    <h1>Ką negali pasakyti<br>garsiai, <em>pasakyk vėliau.</em></h1>
-    <p class="hero-sub">Legacy Protocol — tai nepriklausomas nuo tarpininkų „dead man's switch“ šifruotai medžiagai (testamentams, raktams, įrodymams), kuris atveriamas jūsų pasirinktiems žmonėms, jūsų nustatytu laiku — kai turinį valdote tik jūs, ir niekas kitas.</p>
+    <span class="eyebrow">Pre-Seed 轮 · BASE 网络</span>
+    <h1>说不出口的话，<br><em>以后再说。</em></h1>
+    <p class="hero-sub">Legacy Protocol 是一个非托管的死人开关，用于保护加密材料——遗嘱、密钥、证据——只有在你设定的时间释放给你指定的人，除你之外没有任何人掌管访问权。</p>
     <div class="hero-actions">
-      <a href="mailto:ceo@legacyprotocol.io?subject=Request%3A%20Legacy%20Protocol%20Pitch%20Deck&body=Hi%20Tomas%2C%0A%0AI%20came%20across%20Legacy%20Protocol%20and%20would%20like%20to%20learn%20more.%20Could%20you%20share%20the%20pitch%20deck%3F%0A%0A" class="btn btn-primary">Gauti pristatymą (deck)</a>
-      <a href="#architecture" class="btn btn-ghost">Peržiūrėti, kas jau sukurta</a>
+      <a href="mailto:ceo@legacyprotocol.io?subject=Request%3A%20Legacy%20Protocol%20Pitch%20Deck&body=Hi%20Tomas%2C%0A%0AI%20came%20across%20Legacy%20Protocol%20and%20would%20like%20to%20learn%20more.%20Could%20you%20share%20the%20pitch%20deck%3F%0A%0A" class="btn btn-primary">索取项目介绍</a>
+      <a href="#architecture" class="btn btn-ghost">查看已实现的功能</a>
     </div>
-    <p style="margin-top:28px; font-size:13px; color:var(--parchment-dim); letter-spacing:0.04em;">Sukurta ant <span style="color:var(--parchment); font-weight:500;">Base</span> — Coinbase L2 tinklo</p>
+    <p style="margin-top:28px; font-size:13px; color:var(--parchment-dim); letter-spacing:0.04em;">构建于 <span style="color:var(--parchment); font-weight:500;">Base</span> —— Coinbase 的 L2 网络</p>
 
     <div class="candor">
       <div class="candor-seal">i</div>
       <div class="candor-text">
-        <h3>Kiekvienas teiginys šiame puslapyje yra pažymėtas.</h3>
-        <p><span class="seal seal-live" style="margin-right:4px;">Veikia</span> reiškia, kad tai jau egzistuoja audituotoje sutartyje šiandien. <span class="seal seal-planned" style="margin-right:4px;">Planuojama</span> reiškia, kad tai yra plane, bet dar ne grandinėje. Norime, kad mažiau pasitikėtumėte tuo, ką sakome, ir daugiau patikrintumėte patys — pažiūrėkite <a href="#contact">sutarties kodą</a> savo akimis.</p>
+        <h3>本页面的每一项声明都有明确标注。</h3>
+        <p><span class="seal seal-live" style="margin-right:4px;">已上线</span> 表示该功能今天已存在于经过审计的合约中。<span class="seal seal-planned" style="margin-right:4px;">计划中</span> 表示它在路线图上，但尚未上链。我们希望你少相信我们说的话，多亲自验证——请自行查看<a href="#contact">合约源代码</a>。</p>
       </div>
     </div>
   </div>
@@ -573,25 +611,25 @@
 <section id="problem">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">Problema</span>
-      <h2>Skaitmeninis palikimas neturi patikimo, nepriklausomo nuo tarpininkų kelio pas tinkamus žmones.</h2>
-      <p class="section-sub">Informatoriai (whistleblowers), įpėdiniai ir raktų turėtojai susiduria su ta pačia struktūrine spraga: nėra būdo garantuoti, kad jautri medžiaga pasieks kitą asmenį — tik tuo atveju, jei jums kas nors nutiktų — nepasitikint konkrečiu žmogumi, įmone ar vienu pažeidžiamu tašku.</p>
+      <span class="kicker">问题</span>
+      <h2>数字遗产没有一条无需信任的路径能送达正确的人手中。</h2>
+      <p class="section-sub">举报人、继承人和密钥持有者都面临同样的结构性缺口：没有办法保证敏感材料只在你出事时才送达他人——而无需信任某个人、某家公司，或依赖单一故障点。</p>
     </div>
     <div class="problem-grid">
       <div class="problem-card">
         <div class="problem-num">01</div>
-        <h3>Informatorių pažeidžiamumas</h3>
-        <p>Informatoriai ir žurnalistai neturi patikimo būdo apsaugoti „draudiminį seifą“. Jei jie yra sukompromituojami, tiesa, kurią jie saugojo, dingsta kartu su jais.</p>
+        <h3>举报人的脆弱性</h3>
+        <p>线人和记者没有无需信任的方式来保护一个「保险库」。一旦他们被攻破，他们所掌握的真相也随之消失。</p>
       </div>
       <div class="problem-card">
         <div class="problem-num">02</div>
-        <h3>Vieno gavėjo apribojimas</h3>
-        <p>Dauguma paveldėjimo įrankių palaiko tik vieną fiksuotą gavėją. Nėra galimybės tą pačią medžiagą perduoti keliems žmonėms — šeimai, advokatams, žiniasklaidai — vienu metu.</p>
+        <h3>单一受益人瓶颈</h3>
+        <p>大多数继承工具只支持一个固定接收人。没有办法同时把同一份材料发送给多个人——家人、律师、媒体。</p>
       </div>
       <div class="problem-card">
         <div class="problem-num">03</div>
-        <h3>Metaduomenų rinkimas</h3>
-        <p>Centralizuotas saugojimas atskleidžia, kas su kuo susijęs. Užpuolikas, stebintis grandinę, apskritai neturėtų sužinoti, kad turite ką nors užrakinę.</p>
+        <h3>元数据收集</h3>
+        <p>中心化托管会泄露谁与什么相关联。观察链上活动的攻击者甚至不应该知道你锁定了任何东西。</p>
       </div>
     </div>
   </div>
@@ -600,79 +638,79 @@
 <section id="architecture">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">Kaip tai veikia</span>
-      <h2>Vienas nepriklausomas nuo tarpininkų seifas. Keli gavėjai. Jūsų sąlygos.</h2>
-      <p class="section-sub">Kūrėjas užrakina šifruotą medžiagą išmaniojoje sutartyje, nurodo, kas gali ją pasiimti, ir nustato laikotarpį klaidingam reikalavimui užginčyti. Niekas čia nereikalauja, kad mes ar bet kas kitas laikytų raktą jūsų vardu.</p>
+      <span class="kicker">工作原理</span>
+      <h2>一个非托管保险库。多个接收人。你的条件。</h2>
+      <p class="section-sub">创建者将加密材料锁定在智能合约中，指定谁可以领取，并设定质疑虚假领取请求的时限。这里的一切都不要求我们或任何人代你保管密钥。</p>
     </div>
 
     <div class="flow">
       <div class="flow-step">
         <div class="flow-icon">1</div>
-        <h4>Sukurti seifą</h4>
-        <p>Užrakinkite šifruotą nuorodą, nustatykite trukmę ir ginčijimo laikotarpį.</p>
+        <h4>创建保险库</h4>
+        <p>锁定一个加密引用，设定期限和质疑窗口。</p>
       </div>
       <div class="flow-step">
         <div class="flow-icon">2</div>
-        <h4>Nurodyti gavėjus</h4>
-        <p>Iki 50 nurodytų adresų, kiekvienas gali pasiimti nepriklausomai.</p>
+        <h4>指定接收人</h4>
+        <p>最多 50 个指定地址，每个都可以独立领取。</p>
       </div>
       <div class="flow-step">
         <div class="flow-icon">3</div>
-        <h4>Laikas arba reikalavimas</h4>
-        <p>Atsiveria pagal laikmatį arba anksčiau — per pasirašytą skubų reikalavimą.</p>
+        <h4>到期或领取</h4>
+        <p>按计时器释放，或通过已签名的紧急领取请求提前释放。</p>
       </div>
       <div class="flow-step">
         <div class="flow-icon">4</div>
-        <h4>Ginčijimo laikotarpis</h4>
-        <p>Gyvi ir sveiki? Vienas parašas iškart atšaukia bet kokį klaidingą reikalavimą.</p>
+        <h4>质疑窗口</h4>
+        <p>你还活着？一个签名即可立即取消任何虚假领取请求。</p>
       </div>
       <div class="flow-step">
         <div class="flow-icon">5</div>
-        <h4>Gavėjas pasiima</h4>
-        <p>Parašu patvirtinta prieiga, po kurios metus galima nemokamai atsisiųsti pakartotinai.</p>
+        <h4>接收人领取</h4>
+        <p>经签名验证的访问权限，此后一年内可免费重新下载。</p>
       </div>
     </div>
 
     <div style="margin-top:80px;">
       <div class="feature-row">
-        <div class="feature-title">Keli gavėjai viename seife</div>
-        <div class="feature-desc">Nurodykite iki 50 gavėjų kiekvienam seifui — kiekvienas gali pasiimti turinį nepriklausomai, kai seifas atsirakina. Jokio vieno pažeidžiamo taško gavėjų pusėje.</div>
-        <div class="feature-status"><span class="seal seal-live">Veikia</span></div>
+        <div class="feature-title">多接收人保险库</div>
+        <div class="feature-desc">每个保险库最多可指定 50 个接收人，保险库解锁后每个人都可以独立领取——接收方没有单一故障点。</div>
+        <div class="feature-status"><span class="seal seal-live">已上线</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">Parašu patvirtinti reikalavimai</div>
-        <div class="feature-desc">Reikalavimai patvirtinami kriptografiniu parašu, susietu su pareiškėjo adresu, seifu ir vienkartiniu skaičiumi (nonce) — niekada nenaudojama grandinėje atviai matoma reikšmė, kurią būtų galima nukopijuoti ir panaudoti pakartotinai.</div>
-        <div class="feature-status"><span class="seal seal-live">Veikia</span></div>
+        <div class="feature-title">签名验证的领取</div>
+        <div class="feature-desc">领取请求通过与领取人地址、保险库和一次性 nonce 绑定的加密签名进行授权——绝不会有任何人可以复制并重复使用的链上公开数值。</div>
+        <div class="feature-status"><span class="seal seal-live">已上线</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">Kūrėjo veto laikotarpis</div>
-        <div class="feature-desc">Ginčijimo laikotarpis nuo 72 valandų iki 30 dienų, kurį pasirenka kūrėjas. Vienas kūrėjo parašas iškart atšaukia klaidingą reikalavimą.</div>
-        <div class="feature-status"><span class="seal seal-live">Veikia</span></div>
+        <div class="feature-title">创建者否决窗口</div>
+        <div class="feature-desc">由创建者选择的 72 小时至 30 天的质疑窗口。创建者的一个签名即可立即取消虚假领取请求。</div>
+        <div class="feature-status"><span class="seal seal-live">已上线</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">365 dienų atkūrimo laikotarpis</div>
-        <div class="feature-desc">Kai turinys pasiimamas, gavėjas gauna visus metus nemokamos pakartotinės prieigos — apsauga nuo sugadinto atsisiuntimo ar prarasto įrenginio, be papildomo mokesčio.</div>
-        <div class="feature-status"><span class="seal seal-live">Veikia</span></div>
+        <div class="feature-title">365 天恢复窗口</div>
+        <div class="feature-desc">一旦领取成功，接收人可获得整整一年的免费重新访问权——保护下载损坏或设备丢失的情况，无需额外费用。</div>
+        <div class="feature-status"><span class="seal seal-live">已上线</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">Paslaugų teikėjų registras</div>
-        <div class="feature-desc">Vienintelis dalykas, kurį valdo valdymo mechanizmas, — tai, kurie paslaugų teikėjai gali būti pridėti prie protokolo — ne seifo logika, ne vartotojų lėšos, ne reikalavimų taisyklės. Naujo teikėjo pridėjimui reikia 3 iš 6 nepriklausomų patvirtinimų ir privalomo 14 dienų viešo atidėjimo. Pagrindinis sutarties elgesys yra nekintamas.</div>
-        <div class="feature-status"><span class="seal seal-live">Veikia</span></div>
+        <div class="feature-title">服务提供商注册表</div>
+        <div class="feature-desc">治理机制唯一能控制的，是哪些服务提供商可以被添加到协议中——而非保险库逻辑、用户资金或领取规则。添加新提供商需要 6 票中的 3 票独立批准，并强制公开延迟 14 天。核心合约行为不可更改。</div>
+        <div class="feature-status"><span class="seal seal-live">已上线</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">Privatus aptikimas</div>
-        <div class="feature-desc">Viešoje programoje nerodomas aktyvių seifų ar gavėjų sąrašas. Tikras nulinio žinojimo (zero-knowledge) gavėjo įrodymas — kad net tiesioginis grandinės tyrimas nieko neatskleistų — kol kas yra tik tyrimų stadijos tikslas, dar neįgyvendintas.</div>
-        <div class="feature-status"><span class="seal seal-partial">Dalinai</span></div>
+        <div class="feature-title">隐私发现</div>
+        <div class="feature-desc">公开应用不会暴露任何活跃保险库或接收人的列表。真正的零知识接收人身份证明——即使直接检查链上数据也无法揭示任何信息——是一个研究阶段的目标，尚未实现。</div>
+        <div class="feature-status"><span class="seal seal-partial">部分实现</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">Decentralizuotas saugojimo tinklas</div>
-        <div class="feature-desc">Iššifravimo raktas padalijamas tarp nepriklausomų, aklai maršrutizuojančių mazgų, naudojant Shamir'o paslapties dalijimo (Shamir's Secret Sharing) metodą. Šiandien seifai gali nurodyti bet kokią saugyklą, kurią pasirenka kūrėjas, įskaitant esamus decentralizuotus sprendimus.</div>
-        <div class="feature-status"><span class="seal seal-planned">Planuojama</span></div>
+        <div class="feature-title">去中心化存储网络</div>
+        <div class="feature-desc">通过 Shamir 秘密共享方案，将解密密钥分片存储在独立的、盲路由的节点之间。目前，保险库可以引用创建者选择的任何存储方式，包括现有的去中心化选项。</div>
+        <div class="feature-status"><span class="seal seal-planned">计划中</span></div>
       </div>
       <div class="feature-row">
-        <div class="feature-title">Daugiapakopis reikalavimų nagrinėjimas</div>
-        <div class="feature-desc">Automatizuota dokumentų peržiūra, žmogaus atliekama peržiūros pakopa ir decentralizuota prisiekusiųjų komisija masiniams ginčijamiems reikalavimams. Grandinė jau palaiko galutinį pasirašyto reikalavimo žingsnį; peržiūros pakopos dar neegzistuoja.</div>
-        <div class="feature-status"><span class="seal seal-planned">Planuojama</span></div>
+        <div class="feature-title">多阶段领取裁决</div>
+        <div class="feature-desc">针对大规模有争议领取请求的自动化文件审查、人工审查层级,以及去中心化陪审团。链上已支持最终的已签名领取步骤;审查阶段尚不存在。</div>
+        <div class="feature-status"><span class="seal seal-planned">计划中</span></div>
       </div>
     </div>
   </div>
@@ -681,31 +719,31 @@
 <section id="tokenomics">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">Tokenų ekonomika</span>
-      <h2>Planuojamas modelis — ir tai, kas iš tikrųjų jau įdiegta.</h2>
+      <span class="kicker">代币经济</span>
+      <h2>计划中的模型——以及目前实际已部署的内容。</h2>
     </div>
 
     <div class="warn-block">
       <span class="mark">!</span>
-      <p><strong>LGY tokeno kol kas nėra.</strong> Šiuo metu veikiančioje sutartyje visi mokesčiai mokami ETH valiuta. Toliau aprašytas modelis, kurio siekiame — tai ne jau veikiančio dalyko aprašymas.</p>
+      <p><strong>LGY 代币尚不存在。</strong> 目前上线合约中的所有费用都以 ETH 支付。以下是我们计划构建的目标模型——而非对已运行系统的描述。</p>
     </div>
 
     <div class="token-grid">
       <div class="token-card">
-        <div class="token-num">1 mlrd.</div>
-        <div class="token-label">Fiksuotas kiekis <span class="seal seal-planned">Planuojama</span></div>
+        <div class="token-num">10 亿</div>
+        <div class="token-label">固定总量 <span class="seal seal-planned">计划中</span></div>
       </div>
       <div class="token-card">
         <div class="token-num">80/8/7/5</div>
-        <div class="token-label">Mokesčio paskirstymas — logika veikia, ETH valiuta <span class="seal seal-partial">Dalinai</span></div>
+        <div class="token-label">费用分配 —— 逻辑已上线，以 ETH 计价 <span class="seal seal-partial">部分实现</span></div>
       </div>
       <div class="token-card">
-        <div class="token-num">3 iš 6</div>
-        <div class="token-label">Valdymo patvirtinimas <span class="seal seal-live">Veikia</span></div>
+        <div class="token-num">6 中取 3</div>
+        <div class="token-label">治理批准 <span class="seal seal-live">已上线</span></div>
       </div>
       <div class="token-card">
-        <div class="token-num">14 d.</div>
-        <div class="token-label">Privalomas laiko užraktas <span class="seal seal-live">Veikia</span></div>
+        <div class="token-num">14 天</div>
+        <div class="token-label">强制时间锁 <span class="seal seal-live">已上线</span></div>
       </div>
     </div>
 
@@ -715,15 +753,15 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9B8E" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
       </div>
       <div>
-        <h4 style="font-family:var(--display); font-size:1.05rem; color:var(--parchment); margin-bottom:8px;">Paslaugų kainos išlieka stabilios dolerio išraiška <span class="seal seal-planned" style="vertical-align:middle; margin-left:6px;">Planuojama</span></h4>
-        <p style="font-size:14px; color:var(--parchment-dim); line-height:1.7; max-width:600px;">Seifas, kuris šiandien kainuoja 10 USD, penktais metais turėtų kainuoti apie tiek pat. Naudojant planuojamą kainų orakulą, visi paslaugų mokesčiai nurodomi fiat valiuta ir apmokami atitinkamu LGY kiekiu mokėjimo momentu. Kuo labiau brangsta LGY, tuo mažiau tokenų reikia — todėl ankstyvieji naudotojai ir ilgalaikiai turėtojai laikui bėgant moka mažiau už tas pačias paslaugas, o ne daugiau.</p>
+        <h4 style="font-family:var(--display); font-size:1.05rem; color:var(--parchment); margin-bottom:8px;">服务价格以美元计价保持稳定 <span class="seal seal-planned" style="vertical-align:middle; margin-left:6px;">计划中</span></h4>
+        <p style="font-size:14px; color:var(--parchment-dim); line-height:1.7; max-width:600px;">今天价值 10 美元的保险库，五年后应该仍然大约值 10 美元。通过计划中的价格预言机，所有服务费用都以法币报价，并在付款时以等值的 LGY 结算。LGY 升值越多，所需代币数量越少——因此早期采用者和长期持有者随着时间推移，为同样的服务支付的费用会更少，而不是更多。</p>
       </div>
     </div>
 
     <!-- Token allocation chart -->
     <div style="margin-top:64px;">
-      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:8px; color:var(--parchment);">Tokenų paskirstymas <span class="seal seal-planned" style="vertical-align:middle;">Planuojama</span></h3>
-      <p style="font-size:14px; color:var(--parchment-dim); margin-bottom:32px;">1 000 000 000 LGY fiksuotas kiekis</p>
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:8px; color:var(--parchment);">代币分配 <span class="seal seal-planned" style="vertical-align:middle;">计划中</span></h3>
+      <p style="font-size:14px; color:var(--parchment-dim); margin-bottom:32px;">固定总量 1,000,000,000 枚 LGY</p>
 
       <div style="display:flex; flex-wrap:wrap; gap:48px; align-items:center; justify-content:center;">
         <!-- Donut chart -->
@@ -731,7 +769,7 @@
           <svg id="lgy-chart" width="260" height="260" viewBox="0 0 260 260"></svg>
           <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none;">
             <div id="chart-pct" style="font-family:var(--display); font-size:2rem; color:var(--parchment); line-height:1;">100%</div>
-            <div id="chart-label" style="font-size:11px; color:var(--parchment-dim); margin-top:4px; max-width:80px; line-height:1.4;">Visas kiekis</div>
+            <div id="chart-label" style="font-size:11px; color:var(--parchment-dim); margin-top:4px; max-width:80px; line-height:1.4;">总供应量</div>
           </div>
         </div>
 
@@ -740,13 +778,13 @@
           <div id="lgy-legend" style="display:flex; flex-direction:column; gap:10px;"></div>
 
           <div style="margin-top:28px; padding:16px; border:1px solid var(--line-bright); border-radius:6px; background:rgba(196,103,58,0.06);">
-            <p style="font-size:13px; color:var(--parchment-dim); margin-bottom:12px;">Po 90 dienų BTC pasiėmimo laikotarpio:</p>
+            <p style="font-size:13px; color:var(--parchment-dim); margin-bottom:12px;">90 天 BTC 领取窗口结束后:</p>
             <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; color:var(--parchment);">
               <input type="checkbox" id="burn-toggle" style="width:16px; height:16px; accent-color:var(--amber); cursor:pointer;">
-              Rodyti kiekį po sudeginimo (nepasiimti BTC tokenai sudeginami)
+              显示销毁后的供应量(未领取的 BTC 对应代币已销毁)
             </label>
             <p id="burn-note" style="display:none; margin-top:10px; font-size:12px; color:var(--amber); line-height:1.6;">
-              Iki 100 mln. LGY negrįžtamai pašalinama iš apyvartos — cirkuliuojantis kiekis sumažėja iki 10%, didinant retumą visiems likusiems turėtojams.
+              最多 1 亿枚 LGY 将永久从供应量中移除——流通供应量最多下降 10%,提高所有剩余持有者代币的稀缺性。
             </p>
           </div>
         </div>
@@ -756,12 +794,12 @@
     <script>
     (function() {
       const segments = [
-        { label: 'Web3 pagrindinė plėtra ir validatoriai', pct: 40, color: '#8A9B8E' },
-        { label: 'Airdrop infrastruktūra ir rinkodara', pct: 20, color: '#C4B896' },
-        { label: 'MTEP (tyrimai ir plėtra)', pct: 15, color: '#6B7785' },
-        { label: 'Seed raundas', pct: 10, color: '#C4673A' },
-        { label: 'BTC turėtojų airdrop', pct: 10, color: '#E8813A', burnable: true },
-        { label: 'Pre-Seed raundas', pct: 5, color: '#E8E3D8' },
+        { label: 'Web3 核心开发与验证者', pct: 40, color: '#8A9B8E' },
+        { label: 'Airdrop 基础设施与市场推广', pct: 20, color: '#C4B896' },
+        { label: '研发', pct: 15, color: '#6B7785' },
+        { label: 'Seed 轮', pct: 10, color: '#C4673A' },
+        { label: 'BTC 持有者空投', pct: 10, color: '#E8813A', burnable: true },
+        { label: 'Pre-Seed 轮', pct: 5, color: '#E8E3D8' },
       ];
 
       const cx = 130, cy = 130, R = 110, r = 68;
@@ -810,14 +848,14 @@
           path.addEventListener('mouseleave', () => {
             path.setAttribute('opacity', burned && seg.burnable ? '0.2' : '0.85');
             pctEl.textContent = burned ? '90%' : '100%';
-            labelEl.textContent = burned ? 'Kiekis po sudeginimo' : 'Visas kiekis';
+            labelEl.textContent = burned ? '销毁后供应量' : '总供应量';
           });
           svg.appendChild(path);
           start = end;
         });
 
         pctEl.textContent = burned ? '90%' : '100%';
-        labelEl.textContent = burned ? 'Kiekis po sudeginimo' : 'Visas kiekis';
+        labelEl.textContent = burned ? '销毁后供应量' : '总供应量';
       }
 
       // Legend
@@ -841,23 +879,23 @@
 
     <!-- Investment rounds -->
     <div style="margin-top:64px;">
-      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">Investicijų raundai <span class="seal seal-planned" style="vertical-align:middle;">Planuojama</span></h3>
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">投资轮次 <span class="seal seal-planned" style="vertical-align:middle;">计划中</span></h3>
       <div class="token-grid">
         <div class="token-card" style="grid-column: span 2;">
-          <div class="token-num" style="font-size:1.4rem;">Pre-Seed &mdash; 250 000 USD</div>
+          <div class="token-num" style="font-size:1.4rem;">Pre-Seed &mdash; $250,000</div>
           <div class="token-label" style="margin-top:12px; line-height:1.8;">
-            5% viso kiekio &nbsp;·&nbsp; 50 mln. LGY &nbsp;·&nbsp; 0,005 USD/tokenas<br>
-            SAFT struktūra &nbsp;·&nbsp; 12 mėn. „cliff“ periodas &nbsp;·&nbsp; 24 mėn. tiesinis vestingas<br>
+            总量的 5% &nbsp;·&nbsp; 5,000 万 LGY &nbsp;·&nbsp; 每枚 $0.005<br>
+            SAFT 结构 &nbsp;·&nbsp; 12 个月锁定期 &nbsp;·&nbsp; 24 个月线性解锁<br>
             <span style="font-size:0.82rem; color:var(--sage); margin-top:8px; display:block;">
-              Lėšų panaudojimas: 40% pagrindinė plėtra &nbsp;·&nbsp; 25% saugumo auditas (CertiK/Hacken) &nbsp;·&nbsp; 20% infrastruktūra ir airdrop įrankiai &nbsp;·&nbsp; 15% Šveicarijos fondas
+              资金用途:40% 核心开发 &nbsp;·&nbsp; 25% 安全审计(CertiK/Hacken) &nbsp;·&nbsp; 20% 基础设施与空投工具 &nbsp;·&nbsp; 15% 瑞士基金会
             </span>
           </div>
         </div>
         <div class="token-card" style="grid-column: span 2;">
-          <div class="token-num" style="font-size:1.4rem;">Seed &mdash; 1 500 000 USD</div>
+          <div class="token-num" style="font-size:1.4rem;">Seed &mdash; $1,500,000</div>
           <div class="token-label" style="margin-top:12px; line-height:1.8;">
-            10% viso kiekio &nbsp;·&nbsp; 100 mln. LGY &nbsp;·&nbsp; 0,015 USD/tokenas<br>
-            Po MVP &nbsp;·&nbsp; Veikiantis produktas su įrodyta trauka
+            总量的 10% &nbsp;·&nbsp; 1 亿 LGY &nbsp;·&nbsp; 每枚 $0.015<br>
+            MVP 之后 &nbsp;·&nbsp; 已上线且有实际增长的产品
           </div>
         </div>
       </div>
@@ -865,19 +903,19 @@
 
     <!-- BTC Holder Airdrop -->
     <div style="margin-top:64px;">
-      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">BTC turėtojų Airdrop <span class="seal seal-planned" style="vertical-align:middle;">Planuojama</span></h3>
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">BTC 持有者空投 <span class="seal seal-planned" style="vertical-align:middle;">计划中</span></h3>
       <div class="token-grid">
         <div class="token-card">
-          <div class="token-num">100 mln.</div>
-          <div class="token-label">LGY skirta BTC turėtojams</div>
+          <div class="token-num">1 亿</div>
+          <div class="token-label">分配给 BTC 持有者的 LGY</div>
         </div>
         <div class="token-card">
-          <div class="token-num">90 d.</div>
-          <div class="token-label">Pasiėmimo laikotarpis — nepasiimti tokenai sudeginami</div>
+          <div class="token-num">90 天</div>
+          <div class="token-label">领取窗口 —— 未领取的代币将被销毁</div>
         </div>
         <div class="token-card" style="grid-column: span 2;">
           <div class="token-num" style="font-size:1rem; font-family:var(--body); font-weight:400; line-height:1.8; text-align:left;">
-            BTC turėtojai pateikia savo viešąjį raktą — tokenai perduodami automatiškai, registracijos ar KYC nereikia. Airdrop tokenai yra <strong>Soulbound</strong> (nesusieti su prekyba): juos galima naudoti tik seifo laikui apmokėti protokole, jų negalima prekiauti biržose. Bet kokie nepasiimti tokenai po 90 dienų negrįžtamai sudeginami.
+            BTC 持有者提交公钥——代币自动转账,无需注册或 KYC。空投代币是 <strong>Soulbound</strong>(灵魂绑定)代币:只能用于支付协议上保险库的使用时长,不可在交易所交易。90 天后任何未领取的代币都将被永久销毁。
           </div>
         </div>
       </div>
@@ -885,19 +923,19 @@
 
     <!-- Validator staking -->
     <div style="margin-top:64px;">
-      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">Validatorių tinklas <span class="seal seal-planned" style="vertical-align:middle;">Planuojama</span></h3>
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">验证者网络 <span class="seal seal-planned" style="vertical-align:middle;">计划中</span></h3>
       <div class="token-grid">
         <div class="token-card">
-          <div class="token-num">5 000 USD</div>
-          <div class="token-label">Standartinio mazgo užstatas (LGY)</div>
+          <div class="token-num">$5,000</div>
+          <div class="token-label">标准节点抵押金(以 LGY 计)</div>
         </div>
         <div class="token-card">
-          <div class="token-num">25 000 USD</div>
-          <div class="token-label">Informatorių (whistleblower) mazgo užstatas (LGY)</div>
+          <div class="token-num">$25,000</div>
+          <div class="token-label">举报人节点抵押金(以 LGY 计)</div>
         </div>
         <div class="token-card" style="grid-column: span 2;">
           <div class="token-num" style="font-size:1rem; font-family:var(--body); font-weight:400; line-height:1.8; text-align:left;">
-            Ankstyvieji validatoriai gauna papildomą LGY skyrimą iš ekosistemos fondo kaip paskatą tinklo paleidimui. Visos protokolo paslaugos — įskaitant decentralizuoto saugojimo mokesčius su protokolo marža — apmokamos LGY.
+            早期验证者可从生态系统资金池获得额外的 LGY 分配,作为启动网络的激励。所有协议服务——包括带有协议利润的去中心化存储费用——都以 LGY 支付。
           </div>
         </div>
       </div>
@@ -905,21 +943,21 @@
 
     <!-- Honey pot -->
     <div style="margin-top:64px;">
-      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">Nekintamas masalas (Honey Pot) <span class="seal seal-planned" style="vertical-align:middle;">Planuojama</span></h3>
+      <h3 style="font-family:var(--display); font-size:1.4rem; margin-bottom:32px; color:var(--parchment);">不可变蜜罐(Honey Pot) <span class="seal seal-planned" style="vertical-align:middle;">计划中</span></h3>
       <div class="token-grid">
         <div class="token-card">
-          <div class="token-num">1 mln.</div>
-          <div class="token-label">LGY užrakinta amžinai</div>
+          <div class="token-num">100 万</div>
+          <div class="token-label">永久锁定的 LGY</div>
         </div>
         <div class="token-card">
-          <div class="token-num">1 diena</div>
-          <div class="token-label">Pašalinta iš apyvartos</div>
+          <div class="token-num">第 1 天</div>
+          <div class="token-label">从流通中移除</div>
         </div>
         <div class="token-card" style="grid-column: span 2;">
           <div class="token-num" style="font-size:1rem; font-family:var(--body); font-weight:400; line-height:1.8; text-align:left;">
-            1 000 000 LGY tokenų užrakinama sutartyje paleidimo dieną ir negrįžtamai pašalinama iš cirkuliuojančio kiekio. Jie tarnauja kaip gyvas atviras atlygis: kas nors, radęs būdą juos ištraukti, tuo pačiu įrodo kritinį pažeidžiamumą grandinėje — jokios paraiškos, jokios komisijos, jokio CVE proceso. Sprendžia matematika.<br><br>
-            Jei kas nors juos ištraukia — jie tai užsitarnavo. Tai reiškia, kad jie rado tai, ko mes nepastebėjome — ir parodė mums grandinėje, sąžiningiausiu įmanomu būdu. Mes tai laikome sąžiningu mainu.<br><br>
-            Kadangi šie tokenai įprastomis sąlygomis niekada negali būti parduoti ar perkelti, jų dolerinė vertė auga kartu su LGY. Tinklui augant, atlygis tampa vertingesnis — automatiškai didindamas ekonominę paskatą ieškoti trūkumų, be jokio komandos veiksmo.
+            100 万枚 LGY 代币在上线当天被锁定在合约内,并永久从流通供应量中移除。它们是一个实时公开的悬赏:任何人只要找到提取它们的方法,就等于在链上证明了一个严重漏洞——无需申请,无需委员会,无需 CVE 流程。由数学来决定。<br><br>
+            如果有人真的提取了它们,那是他们应得的。这说明他们发现了我们遗漏的东西——并以最诚实的方式在链上向我们展示了出来。我们认为这是一笔公平的交易。<br><br>
+            由于这些代币在正常情况下永远不能被出售或转移,它们的美元价值会随着 LGY 一起增长。随着网络的扩张,这份悬赏会变得更有价值——在没有团队任何行动的情况下,自动提高发现漏洞的经济激励。
           </div>
         </div>
       </div>
@@ -931,9 +969,9 @@
 <section id="roadmap">
   <div class="wrap">
     <div class="section-head">
-      <span class="kicker">Planas</span>
-      <h2>Išdėstyta pagal tai, nuo ko iš tikrųjų priklauso kiekviena fazė.</h2>
-      <p class="section-sub">Ne pagal ambicijas. Kiekviena žemiau esanti fazė reikalauja, kad ankstesnė būtų jau įgyvendinta.</p>
+      <span class="kicker">路线图</span>
+      <h2>按照每个阶段实际所依赖的条件排序。</h2>
+      <p class="section-sub">而非按照雄心排序。以下每个阶段都需要前一个阶段先落地。</p>
     </div>
 
     <div class="roadmap">
@@ -941,44 +979,44 @@
 
       <div class="road-item is-partial">
         <div class="road-dot partial">0</div>
-        <h4>Sutarties sustiprinimas</h4>
-        <p>Vidinis saugumo vertinimas atliktas per kelis etapus. Nepriklausomas trečiosios šalies auditas ir formalus patvirtinimas dar laukia.</p>
-        <span class="seal seal-partial">Vykdoma</span>
+        <h4>合约加固</h4>
+        <p>内部安全审查已完成多轮。独立第三方审计和形式化验证仍在进行中。</p>
+        <span class="seal seal-partial">进行中</span>
       </div>
 
       <div class="road-item is-live">
         <div class="road-dot live">1</div>
-        <h4>Pagrindinis seifo produktas</h4>
-        <p>Seifo kūrimas, pratęsimas, reikalavimai, ginčai ir valdymas grandinėje — jau šiandien veikia su ETH išreikštais mokesčiais.</p>
-        <span class="seal seal-live">Veikia</span>
+        <h4>核心保险库产品</h4>
+        <p>保险库创建、延期、领取、争议和链上治理——今天即可以 ETH 计价的费用部署。</p>
+        <span class="seal seal-live">已上线</span>
       </div>
 
       <div class="road-item is-planned">
         <div class="road-dot planned">2</div>
-        <h4>LGY tokenas ir vestingas</h4>
-        <p>ERC-20 sutartis, su SAFT suderintas vestingas ir mokesčių perkėlimas iš ETH į LGY per esamą valdymo mechanizmą.</p>
-        <span class="seal seal-planned">Planuojama</span>
+        <h4>LGY 代币与解锁计划</h4>
+        <p>ERC-20 合约、符合 SAFT 的解锁计划,以及通过现有治理路径将费用从 ETH 迁移到 LGY。</p>
+        <span class="seal seal-planned">计划中</span>
       </div>
 
       <div class="road-item is-planned">
         <div class="road-dot planned">3</div>
-        <h4>Decentralizuotas saugojimas</h4>
-        <p>Mazgų tinklas arba integracija su esamomis decentralizuotomis saugyklomis, kartu su kliento pusėje vykdomu Shamir'o paslapties dalijimu raktų platinimui.</p>
-        <span class="seal seal-planned">Planuojama</span>
+        <h4>去中心化存储</h4>
+        <p>节点网络或与现有去中心化存储的集成,加上用于密钥分发的客户端 Shamir 秘密共享方案。</p>
+        <span class="seal seal-planned">计划中</span>
       </div>
 
       <div class="road-item is-planned">
         <div class="road-dot planned">4</div>
-        <h4>Reikalavimų nagrinėjimas</h4>
-        <p>Automatizuotos, žmogaus ir prisiekusiųjų komisijos peržiūros pakopos masiniams ginčijamiems reikalavimams — pridedamos prie jau veikiančio parašu patvirtinto reikalavimo žingsnio.</p>
-        <span class="seal seal-planned">Planuojama</span>
+        <h4>领取裁决</h4>
+        <p>针对大规模有争议领取请求的自动化、人工和陪审团审查层级——叠加在已经运行的签名验证领取步骤之上。</p>
+        <span class="seal seal-planned">计划中</span>
       </div>
 
       <div class="road-item is-planned">
         <div class="road-dot planned">5</div>
-        <h4>Tikras nulinio žinojimo aptikimas</h4>
-        <p>Kriptografinis gavėjo įrodymas, kuris nieko neatskleidžia net tiesiogiai tiriant grandinę — tyrimų stadijos tikslas, numatytas paskutinis.</p>
-        <span class="seal seal-planned">Planuojama</span>
+        <h4>真正的零知识发现</h4>
+        <p>能够在直接检查链上数据时不泄露任何信息的接收人身份加密证明——一个研究阶段的目标,排在最后。</p>
+        <span class="seal seal-planned">计划中</span>
       </div>
     </div>
   </div>
@@ -987,21 +1025,21 @@
 <section id="contact">
   <div class="wrap">
     <div class="cta">
-      <span class="kicker" style="justify-content:center; display:flex;">Pre-Seed raundas</span>
-      <h2>Sukurta ant to, kas realu. Sukurta tam, kas toliau.</h2>
-      <p>Renkame lėšas, kad perkeltume audituotą branduolį iš testnet į mainnet, ir kad finansuotume nepriklausomą saugumo auditą, kuris atliekamas prieš pasiekiant bet kieno lėšas.</p>
+      <span class="kicker" style="justify-content:center; display:flex;">Pre-Seed 轮</span>
+      <h2>建立在真实之上。为未来而设计。</h2>
+      <p>我们正在筹集资金,将经过审计的核心从测试网迁移到主网,并资助在任何人的资金接触协议之前进行的独立安全审计。</p>
       <div class="hero-actions">
-        <a href="mailto:ceo@legacyprotocol.io?subject=Legacy%20Protocol%20%E2%80%94%20Investor%20Inquiry" class="btn btn-primary">Rašykite mums</a>
-        <a href="LGY_Whitepaper_Rev2026_2.pdf" class="btn" target="_blank" style="border:1px solid var(--line-bright); background:transparent; color:var(--parchment);">Atsisiųsti baltąją knygą</a>
+        <a href="mailto:ceo@legacyprotocol.io?subject=Legacy%20Protocol%20%E2%80%94%20Investor%20Inquiry" class="btn btn-primary">给我们发邮件</a>
+        <a href="../LGY_Whitepaper_Rev2026_2.pdf" class="btn" target="_blank" style="border:1px solid var(--line-bright); background:transparent; color:var(--parchment);">下载白皮书</a>
       </div>
       <p style="font-size:13px; color:var(--parchment-dim); margin-top:16px;">
-        arba rašykite tiesiogiai: <a href="mailto:ceo@legacyprotocol.io" style="color:var(--sage); text-decoration:none;">ceo@legacyprotocol.io</a></p>
+        或直接写信至:<a href="mailto:ceo@legacyprotocol.io" style="color:var(--sage); text-decoration:none;">ceo@legacyprotocol.io</a></p>
     </div>
 
     <!-- Investor update signup -->
     <div style="max-width:480px; margin:64px auto 0; text-align:center;">
-      <p style="font-family:var(--display); font-size:1.15rem; color:var(--parchment); margin-bottom:8px;">Sekite mūsų pažangą</p>
-      <p style="font-size:0.9rem; color:var(--parchment-dim); margin-bottom:28px;">Palikite savo el. paštą ir mes atsiųsime plano atnaujinimus, audito rezultatus ir paleidimo pranešimus — nieko daugiau.</p>
+      <p style="font-family:var(--display); font-size:1.15rem; color:var(--parchment); margin-bottom:8px;">获取我们进展的最新消息</p>
+      <p style="font-size:0.9rem; color:var(--parchment-dim); margin-bottom:28px;">留下你的邮箱,我们会发送路线图更新、审计结果和上线公告——仅此而已。</p>
 
       <!-- Mailchimp embedded form (styled to match site) -->
       <form action="https://legacyprotocol.us2.list-manage.com/subscribe/post?u=8f82f281ad1691546011598f0&amp;id=004f6fd32d&amp;f_id=00e596e3f0" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" target="_blank" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
@@ -1014,10 +1052,10 @@
         <button type="submit" name="subscribe"
           style="padding:12px 24px; background:var(--amber); border:none; border-radius:6px; color:#fff; font-family:var(--body); font-size:0.95rem; font-weight:600; cursor:pointer; transition:background 0.2s;"
           onmouseover="this.style.background='var(--amber-bright)'" onmouseout="this.style.background='var(--amber)'">
-          Gauti naujienas
+          获取更新
         </button>
       </form>
-      <p style="font-size:0.78rem; color:var(--sage-dim); margin-top:12px;">Jokio šlamšto. Atsisakykite bet kada.</p>
+      <p style="font-size:0.78rem; color:var(--sage-dim); margin-top:12px;">不发垃圾邮件。可随时取消订阅。</p>
     </div>
   </div>
 </section>
@@ -1026,12 +1064,29 @@
   <div class="wrap footer-inner">
     <div class="footer-brand">Legacy Protocol</div>
     <div class="footer-links">
-      <a href="#architecture">Architektūra</a>
-      <a href="#roadmap">Planas</a>
-      <a href="#contact">Kontaktai</a>
+      <a href="#architecture">架构</a>
+      <a href="#roadmap">路线图</a>
+      <a href="#contact">联系我们</a>
     </div>
   </div>
 </footer>
+
+<script>
+(function() {
+  var trigger = document.getElementById('lang-switch-trigger');
+  var menu = document.getElementById('lang-switch-menu');
+  if (!trigger || !menu) return;
+  trigger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var open = menu.classList.toggle('is-open');
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function() {
+    menu.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded', 'false');
+  });
+})();
+</script>
 
 </body>
 </html>
