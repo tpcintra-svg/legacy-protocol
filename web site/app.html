@@ -382,7 +382,7 @@
     <div class="nav-right">
       <span class="network-badge" id="networkBadge" style="display:none;">
         <span class="network-dot"></span>
-        Base Sepolia
+        <span id="networkBadgeLabel">—</span>
       </span>
       <button class="btn-wallet disconnected" id="walletBtn" onclick="toggleWallet()">
         Connect Wallet
@@ -511,9 +511,28 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Encrypted Data / IPFS URI</label>
-      <textarea class="form-textarea" id="vaultDataURI" placeholder="ipfs://... or leave blank"></textarea>
-      <div class="form-hint">Optional. Link to encrypted file stored on IPFS or Arweave.</div>
+      <label class="form-label">Secret Message</label>
+      <textarea class="form-textarea" id="vaultSecretMessage" placeholder="Whatever you want your recipients to receive — this is encrypted in your browser before it ever leaves your device."></textarea>
+      <div class="form-hint">Optional. Encrypted client-side (AES-256-GCM) before upload — the storage provider and the contract never see the plaintext.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Storage Provider</label>
+      <select class="form-input" id="vaultStorageProvider">
+        <option value="mock">Mock / Local (testing only, no account needed)</option>
+        <option value="pinata">Pinata (IPFS)</option>
+        <option value="filebase">Filebase (IPFS)</option>
+        <option value="arweave">Arweave (via Irys, paid in ETH)</option>
+      </select>
+      <div class="form-hint">Where the encrypted blob is uploaded. Configure API keys in dapp-config.js.</div>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="vaultWaiveVeto" />
+        <span style="font-size:13px; color:var(--parchment);">Permanently waive my veto right for this vault</span>
+      </label>
+      <div class="form-hint">Once the challenge window opens on a claim, nothing you do afterward can block release. This cannot be undone.</div>
     </div>
 
     <div class="form-row">
@@ -558,6 +577,13 @@
 
     <div id="createTxStatus" class="tx-status"></div>
 
+    <div id="createKeyReveal" style="display:none; margin-top:14px; padding:14px; border:1px solid var(--amber); border-radius:8px; background:rgba(196,103,58,0.08);">
+      <div class="form-label" style="color:var(--amber-bright);">Save this decryption key now</div>
+      <div class="form-hint" style="margin-bottom:8px;">It will not be shown again, and Legacy Protocol never stores it. Share it with your recipient(s) through a separate secure channel.</div>
+      <input class="form-input" id="createKeyRevealValue" readonly style="font-family:var(--mono); font-size:12px;" />
+      <button class="btn-sm" style="margin-top:8px;" onclick="navigator.clipboard.writeText(document.getElementById('createKeyRevealValue').value); showToast('Key copied to clipboard.');">Copy key</button>
+    </div>
+
     <button class="btn-primary" style="width:100%; margin-top:8px;" onclick="createVault()" id="createVaultBtn">
       Create Vault
     </button>
@@ -591,28 +617,90 @@
   </div>
 </div>
 
+<!-- CLAIM / VIEW MODAL -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Claim Vault</h3>
+      <button class="modal-close" onclick="closeModal('claimModal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Decryption Key</label>
+      <input class="form-input" id="claimDecryptKey" placeholder="Base64 key, shared with you out-of-band by the creator" />
+      <div class="form-hint">Legacy Protocol never stores this key — the creator must have shared it with you separately.</div>
+    </div>
+
+    <div id="claimTxStatus" class="tx-status"></div>
+
+    <button class="btn-primary" style="width:100%; margin-top:8px;" onclick="executeClaim()" id="claimBtn">
+      Sign &amp; Claim
+    </button>
+
+    <div id="claimedContentBox" style="display:none; margin-top:18px;">
+      <label class="form-label">Decrypted Message</label>
+      <textarea class="form-textarea" id="claimedContentText" readonly style="min-height:100px;"></textarea>
+      <button class="btn-sm danger" style="width:100%; margin-top:10px;" onclick="executeDeleteContent()" id="deleteContentBtn">
+        Permanently delete my access to this vault's content
+      </button>
+      <div class="form-hint" style="margin-top:6px;">Only removes YOUR access. Any other recipient of this same vault keeps theirs.</div>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<!-- Ethers.js v5 -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<!-- aws4fetch: browser-side AWS SigV4 signing for Filebase's S3-compatible API -->
+<script src="https://cdn.jsdelivr.net/npm/aws4fetch@1.0.20/dist/aws4fetch.umd.min.js"></script>
+<!-- Irys (formerly Bundlr): pay for permanent Arweave storage in ETH via connected wallet -->
+<!-- NOT YET WIRED UP: the CDN path for @irys/sdk's browser bundle could not be verified
+     (the package's published build layout changes between versions and no live
+     Arweave/Irys credentials existed to test against). uploadToArweave() in storage.js
+     is written to Irys's documented API shape as a best-effort starting point, but you
+     must add a working <script> include for the Irys browser SDK here — check
+     https://docs.irys.xyz for the current bundle URL — before the "Arweave" storage
+     option in the Create Vault form will work. Until then it fails with a clear error. -->
+<!-- Per-environment config: contract address, network, storage provider keys -->
+<script src="dapp-config.js"></script>
+<!-- Client-side encryption + Pinata/Filebase/Arweave/Mock upload abstraction -->
+<script src="storage.js"></script>
+
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // TODO: replace after deploy
-const BASE_SEPOLIA_CHAIN_ID = "0x14a34"; // 84532
+// Real config (contract address per network, storage provider keys) lives in
+// dapp-config.js (loaded before this script) so it can be edited without
+// touching app logic.
+const NETWORKS = {
+  local:   { chainIdHex: "0x7a69", chainName: "Anvil (local)",  rpcUrls: ["http://127.0.0.1:8545"], nativeCurrency: { name:"ETH", symbol:"ETH", decimals:18 }, blockExplorerUrls: [] },
+  sepolia: { chainIdHex: "0x14a34", chainName: "Base Sepolia", rpcUrls: ["https://sepolia.base.org"], nativeCurrency: { name:"ETH", symbol:"ETH", decimals:18 }, blockExplorerUrls: ["https://sepolia.basescan.org"] },
+};
+const ACTIVE_NETWORK = window.LGY_CONFIG.network; // "local" | "sepolia"
+const NETWORK_CFG = NETWORKS[ACTIVE_NETWORK];
+const CONTRACT_ADDRESS = window.LGY_CONFIG.contracts[ACTIVE_NETWORK].address;
+
 const COST_PER_SECOND = BigInt("4160000000000"); // 0.00000416 ETH in wei
 const BASE_FEE = BigInt("5000000000000000"); // 0.005 ETH in wei
 
 const ABI = [
-  "function createLegacyVault(uint256,uint256,bytes32[],address[],string,string,bool) payable",
+  "function createLegacyVault(uint256,uint256,bytes32[],address[],string,string,bool,bool,uint256) payable",
+  "function claimLegacyVault(uint256,uint256,bytes) returns (string)",
+  "function deleteVaultContent(uint256,uint256,bytes)",
   "function extendLegacyStaking(uint256,uint256) payable",
   "function emergencyUnstake(uint256)",
   "function iamAliveVeto(uint256)",
   "function notifyVaultClaimable(uint256)",
   "function getVaultPublicInfo(uint256) view returns (address,uint256,uint256,bool,bool)",
+  "function getVaultIdsByRecipientHash(bytes32) view returns (uint256[])",
+  "function getActiveServiceProviders() view returns (uint256[],string[],address[])",
   "function getVaultRate(uint256) view returns (uint256)",
   "function costPerSecond() view returns (uint256)",
   "function baseActivationFee() view returns (uint256)",
   "event LegacyVaultCreated(uint256 indexed vaultId, address indexed creator, uint256 expirationTime)",
-  "event VaultBecameClaimable(uint256 indexed vaultId, address[] recipients, uint256 claimableAt)"
+  "event VaultBecameClaimable(uint256 indexed vaultId, address[] recipients, uint256 claimableAt)",
+  "event VaultContentDeleted(uint256 indexed vaultId, address indexed deletedBy)"
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
@@ -621,6 +709,8 @@ let provider = null;
 let signer = null;
 let contract = null;
 let currentExtendVaultId = null;
+let currentClaimVaultId = null;
+let claimedURIByVault = {}; // vaultId -> encryptedDataURI returned by the last successful claim
 let activeTab = "myVaults";
 
 // ── WALLET ────────────────────────────────────────────────────────────────────
@@ -651,6 +741,7 @@ async function initProvider(address) {
   document.getElementById("connectPrompt").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
   document.getElementById("networkBadge").style.display = "inline-flex";
+  document.getElementById("networkBadgeLabel").textContent = NETWORK_CFG.chainName;
 
   // Init contract only if address is set
   if (CONTRACT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
@@ -678,18 +769,18 @@ async function ensureNetwork() {
   try {
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }]
+      params: [{ chainId: NETWORK_CFG.chainIdHex }]
     });
   } catch(e) {
     if (e.code === 4902) {
       await window.ethereum.request({
         method: "wallet_addEthereumChain",
         params: [{
-          chainId: BASE_SEPOLIA_CHAIN_ID,
-          chainName: "Base Sepolia",
-          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
-          rpcUrls: ["https://sepolia.base.org"],
-          blockExplorerUrls: ["https://sepolia.basescan.org"]
+          chainId: NETWORK_CFG.chainIdHex,
+          chainName: NETWORK_CFG.chainName,
+          nativeCurrency: NETWORK_CFG.nativeCurrency,
+          rpcUrls: NETWORK_CFG.rpcUrls,
+          blockExplorerUrls: NETWORK_CFG.blockExplorerUrls
         }]
       });
     }
@@ -718,30 +809,36 @@ async function loadDashboard() {
     document.getElementById("statRecipients").textContent = "—";
     document.getElementById("myVaultsList").innerHTML = `
       <div class="empty-state">
-        <p style="margin-bottom:8px;">Contract not yet deployed to Base Sepolia.</p>
-        <p style="font-size:12px;">Coming soon — testnet deployment in progress.</p>
+        <p style="margin-bottom:8px;">Contract not yet deployed to ${NETWORK_CFG.chainName}.</p>
+        <p style="font-size:12px;">Set the address in dapp-config.js once it is.</p>
       </div>`;
     return;
   }
 
+  await loadMyVaults();
+  await loadIncoming();
+}
+
+async function loadMyVaults() {
   try {
     // Read vault events to find user's vaults
     const filter = contract.filters.LegacyVaultCreated(null, walletAddress);
     const events = await contract.queryFilter(filter, 0, "latest");
 
     let activeCount = 0;
-    let totalStaked = BigInt(0);
-    let totalRecipients = 0;
     const vaultCards = [];
+
+    // Compare against the chain's own latest block timestamp — see the
+    // comment in loadIncoming() for why this beats the browser's wall clock.
+    const latestBlock = await provider.getBlock("latest");
+    const chainNowMs = latestBlock.timestamp * 1000;
 
     for (const ev of events) {
       const id = ev.args.vaultId.toNumber();
       const [creator, expiry, vetoWindow, isClaimed, isActive] = await contract.getVaultPublicInfo(id);
-      const balance = await provider.getBalance(CONTRACT_ADDRESS);
 
       const expiryDate = new Date(expiry.toNumber() * 1000);
-      const now = Date.now();
-      const status = isClaimed ? "claimed" : isActive && expiryDate.getTime() > now ? "active" : "expired";
+      const status = isClaimed ? "claimed" : isActive && expiryDate.getTime() > chainNowMs ? "active" : "expired";
 
       if (status === "active") activeCount++;
 
@@ -765,6 +862,69 @@ async function loadDashboard() {
     console.error(e);
     showToast("Error loading vaults: " + e.message);
   }
+}
+
+// Uses getVaultIdsByRecipientHash — the same "Private Discovery" lookup the
+// whitepaper describes: we compute our own recipient hash locally and ask
+// the contract directly for matching vault IDs, rather than scanning every
+// vault or exposing a public "search by address" surface.
+async function loadIncoming() {
+  try {
+    const myHash = ethers.utils.keccak256(ethers.utils.solidityPack(["address"], [walletAddress]));
+    const vaultIds = await contract.getVaultIdsByRecipientHash(myHash);
+
+    if (vaultIds.length === 0) {
+      document.getElementById("incomingList").innerHTML = `
+        <div class="empty-state"><p>No incoming vaults found for your address.</p></div>`;
+      return;
+    }
+
+    // Compare against the chain's own latest block timestamp, not the
+    // browser's wall clock — they're usually close, but on a local/test
+    // chain (or a system with a wrong clock) they can drift, and the
+    // contract itself only ever cares about block.timestamp.
+    const latestBlock = await provider.getBlock("latest");
+    const chainNowMs = latestBlock.timestamp * 1000;
+
+    const cards = [];
+    for (const idBn of vaultIds) {
+      const id = idBn.toNumber();
+      const [creator, expiry, vetoWindow, isClaimed, isActive] = await contract.getVaultPublicInfo(id);
+      if (!isActive) continue;
+      const expiryDate = new Date(expiry.toNumber() * 1000);
+      const isExpired = expiryDate.getTime() <= chainNowMs;
+      cards.push({ id, creator, expiryDate, isClaimed, isExpired });
+    }
+
+    document.getElementById("incomingList").innerHTML = cards.length
+      ? cards.map(renderIncomingCard).join("")
+      : `<div class="empty-state"><p>No incoming vaults found for your address.</p></div>`;
+  } catch(e) {
+    console.error(e);
+    showToast("Error loading incoming vaults: " + e.message);
+  }
+}
+
+function renderIncomingCard(v) {
+  const expiryStr = v.expiryDate.toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  return `
+  <div class="vault-card">
+    <div class="vault-card-header">
+      <span class="vault-id">Vault #${v.id}</span>
+      <span class="vault-status ${v.isClaimed ? 'claimed' : v.isExpired ? 'expired' : 'active'}">
+        ${v.isClaimed ? 'Claimed' : v.isExpired ? 'Ready to claim' : 'Not yet claimable'}
+      </span>
+    </div>
+    <div class="vault-meta">
+      <div class="vault-meta-item">Creator <span>${truncate(v.creator)}</span></div>
+      <div class="vault-meta-item">Expiry <span>${expiryStr}</span></div>
+    </div>
+    <div class="vault-actions">
+      ${v.isExpired
+        ? `<button class="btn-sm" onclick="openClaimModal(${v.id})">Claim &amp; Decrypt</button>`
+        : `<span style="font-size:12px;color:var(--parchment-dim);">Not expired yet</span>`}
+    </div>
+  </div>`;
 }
 
 function renderVaultCard(v) {
@@ -796,6 +956,10 @@ function renderVaultCard(v) {
 function openCreateModal() {
   if (!walletAddress) { connectWallet(); return; }
   updateEstimatedCost();
+  _pendingVaultCreation = null;
+  document.getElementById("createVaultBtn").textContent = "Create Vault";
+  document.getElementById("createKeyReveal").style.display = "none";
+  document.getElementById("createTxStatus").className = "tx-status";
   document.getElementById("createModal").classList.add("open");
 }
 
@@ -821,11 +985,22 @@ function addRecipient() {
   container.appendChild(row);
 }
 
+let _pendingVaultCreation = null; // holds params while the user confirms they've saved the decryption key
+
 async function createVault() {
   if (!contract) { showToast("Contract not deployed yet."); return; }
 
+  // Second click, after the key-reveal box is showing: proceed straight to
+  // the on-chain transaction with the already-prepared params.
+  if (_pendingVaultCreation) {
+    await _submitVaultCreation(_pendingVaultCreation);
+    return;
+  }
+
   const label = document.getElementById("vaultLabel").value.trim();
-  const dataURI = document.getElementById("vaultDataURI").value.trim();
+  const secretMessage = document.getElementById("vaultSecretMessage").value;
+  const storageProvider = document.getElementById("vaultStorageProvider").value;
+  const waiveVeto = document.getElementById("vaultWaiveVeto").checked;
   const duration = parseInt(document.getElementById("vaultDuration").value);
   const vetoWindow = parseInt(document.getElementById("vaultVetoWindow").value);
 
@@ -838,21 +1013,59 @@ async function createVault() {
   const hashes = addresses.map(a => ethers.utils.keccak256(ethers.utils.solidityPack(["address"], [a])));
   const cost = BigInt(duration) * COST_PER_SECOND + BASE_FEE;
 
-  setTxStatus("createTxStatus", "pending", "⏳ Confirm in MetaMask...");
   document.getElementById("createVaultBtn").disabled = true;
 
   try {
+    let dataURI = "";
+    if (secretMessage.trim().length > 0) {
+      setTxStatus("createTxStatus", "pending", "🔒 Encrypting and uploading to " + storageProvider + "...");
+      const plaintextBytes = new TextEncoder().encode(secretMessage);
+      const { uri, keyBase64 } = await lgyUploadEncrypted(plaintextBytes, storageProvider, signer);
+      dataURI = uri;
+
+      // The decryption key is never sent on-chain or to the storage provider —
+      // it only ever exists in this browser tab. Show it inline (never via
+      // window.prompt/alert — those are unreliable or unavailable in mobile
+      // wallet in-app browsers) and require an explicit second click before
+      // submitting the on-chain transaction, so it can't be missed.
+      document.getElementById("createKeyRevealValue").value = keyBase64;
+      document.getElementById("createKeyReveal").style.display = "block";
+      setTxStatus("createTxStatus", "pending", "🔒 Encrypted and uploaded. Save the key below, then continue.");
+      document.getElementById("createVaultBtn").textContent = "I've saved the key — Continue";
+      document.getElementById("createVaultBtn").disabled = false;
+
+      _pendingVaultCreation = { duration, vetoWindow, hashes, addresses, label, dataURI, waiveVeto, cost };
+      return;
+    }
+
+    await _submitVaultCreation({ duration, vetoWindow, hashes, addresses, label, dataURI, waiveVeto, cost });
+  } catch(e) {
+    console.error(e);
+    setTxStatus("createTxStatus", "error", "✕ " + (e.reason || e.message));
+    document.getElementById("createVaultBtn").disabled = false;
+  }
+}
+
+async function _submitVaultCreation(p) {
+  document.getElementById("createVaultBtn").disabled = true;
+  try {
+    setTxStatus("createTxStatus", "pending", "⏳ Confirm in MetaMask...");
     const tx = await contract.createLegacyVault(
-      duration, vetoWindow, hashes, addresses, label, dataURI, false,
-      { value: cost.toString() }
+      p.duration, p.vetoWindow, p.hashes, p.addresses, p.label, p.dataURI, false, p.waiveVeto, 0,
+      { value: p.cost.toString() }
     );
     setTxStatus("createTxStatus", "pending", "⏳ Transaction submitted...");
     await tx.wait();
     setTxStatus("createTxStatus", "success", "✓ Vault created!");
     showToast("Vault created successfully.");
+    _pendingVaultCreation = null;
+    document.getElementById("createVaultBtn").textContent = "Create Vault";
+    document.getElementById("createKeyReveal").style.display = "none";
     setTimeout(() => { closeModal("createModal"); loadDashboard(); }, 1500);
   } catch(e) {
+    console.error(e);
     setTxStatus("createTxStatus", "error", "✕ " + (e.reason || e.message));
+  } finally {
     document.getElementById("createVaultBtn").disabled = false;
   }
 }
@@ -888,6 +1101,112 @@ async function executeExtend() {
   } catch(e) {
     setTxStatus("extendTxStatus", "error", "✕ " + (e.reason || e.message));
     document.getElementById("extendBtn").disabled = false;
+  }
+}
+
+// ── CLAIM / DECRYPT / DELETE ──────────────────────────────────────────────────
+function openClaimModal(vaultId) {
+  currentClaimVaultId = vaultId;
+  document.getElementById("claimDecryptKey").value = "";
+  document.getElementById("claimedContentBox").style.display = "none";
+  document.getElementById("claimTxStatus").className = "tx-status";
+  document.getElementById("claimBtn").style.display = "block";
+  document.getElementById("claimModal").classList.add("open");
+}
+
+// EIP-191 personal-sign over the exact message the contract recomputes
+// server-side (LGY_CLAIM / LGY_DELETE + contract address + chainId + vaultId
+// + msg.sender + validAfter) — ethers' signMessage() applies the
+// "\x19Ethereum Signed Message:\n32" prefix automatically, matching
+// _recoverSigner in the contract.
+async function _signVaultAction(prefix, vaultId, validAfter) {
+  const net = await provider.getNetwork();
+  const messageHash = ethers.utils.solidityKeccak256(
+    ["string", "address", "uint256", "uint256", "address", "uint256"],
+    [prefix, CONTRACT_ADDRESS, net.chainId, vaultId, walletAddress, validAfter]
+  );
+  return signer.signMessage(ethers.utils.arrayify(messageHash));
+}
+
+async function executeClaim() {
+  if (!contract || currentClaimVaultId === null) return;
+  const vaultId = currentClaimVaultId;
+  const decryptKey = document.getElementById("claimDecryptKey").value.trim();
+
+  setTxStatus("claimTxStatus", "pending", "⏳ Sign the claim message in MetaMask...");
+  document.getElementById("claimBtn").disabled = true;
+
+  try {
+    const validAfter = Math.floor(Date.now() / 1000);
+    const sig = await _signVaultAction("LGY_CLAIM", vaultId, validAfter);
+
+    // callStatic first to read the return value (claimLegacyVault is a
+    // state-changing tx, so its return string isn't otherwise retrievable) —
+    // this simulates against the *unused* nonce, then the real tx below
+    // consumes it for real.
+    const uri = await contract.callStatic.claimLegacyVault(vaultId, validAfter, sig);
+
+    setTxStatus("claimTxStatus", "pending", "⏳ Confirm the claim transaction in MetaMask...");
+    const tx = await contract.claimLegacyVault(vaultId, validAfter, sig);
+    await tx.wait();
+    claimedURIByVault[vaultId] = uri;
+
+    setTxStatus("claimTxStatus", "success", "✓ Claimed! Fetching and decrypting content...");
+    document.getElementById("claimBtn").style.display = "none";
+
+    if (!uri) {
+      document.getElementById("claimedContentText").value = "(this vault has no content attached)";
+      document.getElementById("claimedContentBox").style.display = "block";
+      return;
+    }
+    if (!decryptKey) {
+      document.getElementById("claimedContentText").value = "Content URI: " + uri + "\n\n(no decryption key entered — showing raw URI only)";
+      document.getElementById("claimedContentBox").style.display = "block";
+      return;
+    }
+
+    const encryptedBytes = await _fetchUri(uri);
+    const plaintextBytes = await lgyDecrypt(encryptedBytes, decryptKey);
+    document.getElementById("claimedContentText").value = new TextDecoder().decode(plaintextBytes);
+    document.getElementById("claimedContentBox").style.display = "block";
+  } catch(e) {
+    console.error(e);
+    setTxStatus("claimTxStatus", "error", "✕ " + (e.reason || e.message));
+  } finally {
+    document.getElementById("claimBtn").disabled = false;
+  }
+}
+
+async function _fetchUri(uri) {
+  if (uri.startsWith("data:")) {
+    const b64 = uri.split(",")[1];
+    return base64ToBytes(b64);
+  }
+  let url = uri;
+  if (uri.startsWith("ipfs://")) url = "https://ipfs.io/ipfs/" + uri.slice(7);
+  else if (uri.startsWith("ar://")) url = "https://arweave.net/" + uri.slice(5);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Could not fetch content from " + url);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+async function executeDeleteContent() {
+  if (!contract || currentClaimVaultId === null) return;
+  if (!confirm("Permanently delete YOUR access to this vault's content? Other recipients of the same vault are unaffected. This cannot be undone.")) return;
+
+  const vaultId = currentClaimVaultId;
+  try {
+    const validAfter = Math.floor(Date.now() / 1000);
+    const sig = await _signVaultAction("LGY_DELETE", vaultId, validAfter);
+    const tx = await contract.deleteVaultContent(vaultId, validAfter, sig);
+    showToast("Deleting your access...");
+    await tx.wait();
+    showToast("Your access to this vault's content has been permanently deleted.");
+    closeModal("claimModal");
+    loadDashboard();
+  } catch(e) {
+    console.error(e);
+    showToast("Error: " + (e.reason || e.message));
   }
 }
 
@@ -972,9 +1291,6 @@ window.addEventListener("load", async () => {
   }
 });
 </script>
-
-<!-- Ethers.js v5 -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
 </body>
 </html>

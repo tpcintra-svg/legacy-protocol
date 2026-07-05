@@ -33,7 +33,7 @@ A non-custodial dead man's switch on BASE (Coinbase L2). Users lock encrypted ma
 - 3-of-6 multisig governance + 14-day timelock
 - Creator veto window (72h–30d, configurable per vault)
 - `vetoWaived` flag — creator can permanently waive veto at vault creation
-- `deleteVaultContent()` — recipient can permanently delete content after claiming
+- `deleteVaultContent()` — a recipient can permanently delete their own access to a vault's content after claiming; scoped per-recipient via `recipientContentDeleted` mapping, so on a multi-recipient vault one recipient deleting does not affect any other recipient's access (fixed 2026-07-03: previously cleared the vault-wide `encryptedDataURI`/`encryptedLabel` fields, wiping access for every recipient)
 - `notifyVaultClaimable()` — on-chain event for indexers/keepers
 - `365-day recovery window` after first claim
 - **Service Provider Registry** — governance can add/remove storage providers; vault creators choose which provider to use (9th param to `createLegacyVault`)
@@ -70,12 +70,25 @@ createLegacyVault(
 ## Foundry Tests
 Location: `foundry-tests/`  
 Run with: `forge test` from `foundry-tests/` directory  
-**Status: 38/38 tests passing** (9 main contract + 27 BTC airdrop + 2 counter)
+**Status: 63/63 tests passing** (34 main contract + 27 BTC airdrop + 2 counter)
+
+2026-07-03: expanded main-contract coverage from 9 → 34 tests. Now covers what was
+previously the test-coverage gap: claim/delete signature flows (including a
+regression test for the per-recipient content-deletion scoping fix — one recipient
+deleting their access must not affect any other recipient of the same vault), the
+full governance propose/approve/execute/cancel lifecycle, and the Service Provider
+Registry (add/remove/select-at-vault-creation). Signing in tests uses `vm.addr`/
+`vm.sign` on private keys (`recipientPk`, `recipient2Pk`, `strangerPk`, `coreKeyPks`)
+rather than plain `address(0x5)`-style constants, since EIP-191 signature tests need
+a known private key to sign with.
 
 Key test helpers:
 - Cost must be computed BEFORE `vm.startPrank` (or prank gets consumed by getter)
 - First vault ID is `1` (not 0) — `nextVaultId` starts at 1
 - `createLegacyVault` test call: pass `false, false, 0` for last 3 params
+- `_sign(pk, message)` — EIP-191 personal-sign helper matching the contract's `_recoverSigner`
+- `_setUpCoreKeys()` — registers 6 core keys derived from `coreKeyPks`
+- `_createVaultMulti(duration, recipients[])` — multi-recipient vault helper for scoping tests
 
 ---
 
@@ -84,15 +97,21 @@ Key test helpers:
 - `legacy-protocol-website.html` — main landing page, English (dark theme, Fraunces + IBM Plex fonts)
 - `index.html` — full copy of the landing page (kept in sync with `legacy-protocol-website.html`), serves as the default file for the Cloudflare Worker
 - `es/index.html`, `fr/index.html`, `ru/index.html`, `zh/index.html`, `ar/index.html` — full translated static copies (Arabic is RTL)
-- `app.html` — password-gated investor/admin dashboard (password: "123")
+- `app.html` — wallet-connected vault dashboard (password-gated, password: "123"; gate is client-side only, trivially bypassable — not real access control). 2026-07-03/04: rewritten to match the current contract — ABI now includes `claimLegacyVault`, `deleteVaultContent`, the 9-param `createLegacyVault`, `getVaultIdsByRecipientHash` (Private Discovery lookup), `getActiveServiceProviders`. Supports both `local` (Anvil, chainId 31337) and `sepolia` (Base Sepolia) networks via `dapp-config.js`. Create-vault flow: client-side AES-256-GCM encrypt (Web Crypto API) → upload via chosen storage provider → decryption key shown once in an inline reveal box (never `window.prompt`/`alert` — unreliable in mobile wallet in-app browsers) → on-chain `createLegacyVault` call. Incoming tab: claim (EIP-191 sign + `callStatic` to read the return URI before the real tx) → fetch from URI → decrypt with a pasted key → "delete my access" button (per-recipient scoped, matches the 2026-07-03 contract fix). Vault expiry/status checks use the chain's own `provider.getBlock("latest").timestamp`, not the browser's wall clock.
+- `dapp-config.js` — per-environment config: active network, contract address per network, storage provider credentials (Pinata JWT, Filebase keys, Irys node). Ships with placeholders only — safe to commit as-is. Filebase/Arweave keys are NOT meant for public client-side exposure long-term; a real deployment should proxy those through a backend (e.g. a Cloudflare Worker function) so secrets never reach the browser.
+- `storage.js` — client-side encryption + storage provider abstraction. `mock` provider (data: URI, no account needed) is fully tested end-to-end. `pinata` (IPFS) and `filebase` (IPFS via aws4fetch/S3 SigV4) are written per each provider's docs but **untested** — no real credentials existed when written. `arweave` (via Irys, pay in ETH) needs a working CDN `<script>` include for the Irys browser SDK added to `app.html` before it'll work — the bundle URL could not be verified (see comment in `app.html`).
 - `LGY_Whitepaper_Rev2026_3.pdf` — current white paper (content covers protocol/contract/tokenomics only — not affected by website/hosting work). Rev2026_2 kept alongside for history.
-  - Rev2026.3 changelog vs 2026.2: fixed governance threshold references (was incorrectly stated as 3-of-5, live contract is 3-of-6); added Service Provider Registry (§3.2, code exists but not yet covered by tests — flagged as such); added optional permanent veto waiver (§3.4); added new §3.6 Post-Claim Content Deletion (`deleteVaultContent()`); added new §4.7 BTC Holder Airdrop mechanics; Security Posture (§6) now discloses `debugClaimMessage()` pending removal and explicitly notes claim/governance/service-provider code paths aren't yet covered by the Foundry test suite (only vault creation/extension/veto/unstake/notify are).
+  - Rev2026.3 changelog vs 2026.2: fixed governance threshold references (was incorrectly stated as 3-of-5, live contract is 3-of-6); added Service Provider Registry (§3.2, code exists but not yet covered by tests — flagged as such); added optional permanent veto waiver (§3.4); added new §3.6 Post-Claim Content Deletion (`deleteVaultContent()`); added new §4.7 BTC Holder Airdrop mechanics; Security Posture (§6) now discloses `debugClaimMessage()` pending removal and explicitly notes claim/governance/service-provider code paths aren't yet covered by the Foundry test suite (only vault creation/extension/veto/unstake/notify are). 2026-07-04: content-deletion description corrected to per-recipient scoping (matches the contract fix); test-count language corrected (36 tests specific to the two contracts, 38 total in the repo including 2 unrelated Foundry template tests). The whitepaper docx (`white paper/LGY_Whitepaper_Rev2026_3.docx`) was fully rewritten from scratch (via docx-js) to match the PDF's exact section numbering — old version kept as `LGY_Whitepaper_Rev2026_3_pre-full-rewrite-backup.docx`.
+- `robots.txt`, `sitemap.xml` — added 2026-07-05. Sitemap lists all 6 language URLs with `hreflang` alternates; robots.txt disallows `/app.html` (gated dashboard, not meant for search indexing).
+- `LGY_Twitter_Avatar.png` (400×400, favicon + og:image fallback), `LGY_Twitter_Banner.png` (1500×500, og:image/twitter:image) — copied here from the project root so they're servable from the live domain.
 - `netlify.toml` — leftover from the old Netlify setup; no longer used (Cloudflare Workers doesn't read it), kept for reference only
 - `index.OLD-backup.html` — pre-migration backup, not otherwise used
 
+**SEO (added 2026-07-05):** all 7 HTML files (`index.html`, `legacy-protocol-website.html`, + 5 language pages) now have unique `meta description`, Open Graph + Twitter Card tags, self-referencing `canonical`, full `hreflang` alternates cross-linking all 6 language versions (+ `x-default` → English), and a favicon. Before this, the site had only `<title>` tags — no description, no social preview images, no sitemap/robots.txt, no hreflang (risked language/duplicate-content confusion in search).
+
 **Deploying a website change (current process — see Hosting note above):**
 1. Commit and push to `master` on GitHub (this alone does NOT go live).
-2. Manually redeploy via Cloudflare dashboard: Workers & Pages → `legacy-protocol` → Deployments → "Create deployment"/"Upload assets" → upload the `web site/` files (all 6 language `index.html` files + `legacy-protocol-website.html` + `app.html` + the PDF). Best done by Tomas directly in his own browser — dashboard automation tends to hang.
+2. Manually redeploy via Cloudflare dashboard: Workers & Pages → `legacy-protocol` → Deployments → "Create deployment"/"Upload assets" → upload the `web site/` files (all 6 language `index.html` files + `legacy-protocol-website.html` + `app.html` + `dapp-config.js` + `storage.js` + `robots.txt` + `sitemap.xml` + the two `LGY_Twitter_*.png` images + the PDF). Best done by Tomas directly in his own browser — dashboard automation tends to hang.
 
 **Nav has:** a language-switcher dropdown linking EN/ES/FR/RU/ZH/AR static pages, plus "Get in touch". The old Google Translate widget/dropdown has been removed entirely.
 
@@ -131,17 +150,24 @@ Code/
   LegacyProtocol_fixed_10.sol   ← main contract
   LGY_BTC_Airdrop.sol           ← BTC airdrop contract
 foundry-tests/
+  foundry.toml                  ← optimizer enabled (needed — see below)
   src/LegacyProtocol.sol        ← copy of main contract for tests
   src/LGY_BTC_Airdrop.sol       ← copy of airdrop contract for tests
-  test/LegacyProtocol.t.sol     ← 9 main contract tests
+  test/LegacyProtocol.t.sol     ← 34 main contract tests
   test/LGY_BTC_Airdrop.t.sol    ← 27 airdrop tests
 web site/
   legacy-protocol-website.html  ← landing page (English)
   index.html                    ← synced copy of landing page, default Worker file
   es/ fr/ ru/ zh/ ar/index.html ← translated static pages (ar = RTL)
-  app.html                      ← dashboard (password: 123)
+  app.html                      ← wallet-connected vault dashboard (password: 123)
+  dapp-config.js                ← network + storage provider config (placeholders only)
+  storage.js                    ← client-side encryption + Pinata/Filebase/Arweave/Mock upload
+  robots.txt, sitemap.xml       ← added 2026-07-05 for SEO
+  LGY_Twitter_Avatar.png/Banner.png ← favicon + og:image source
   netlify.toml                  ← unused leftover from Netlify era
 ```
+
+**Important — Solidity optimizer must stay enabled:** `LegacyProtocol` compiles to ~41.8KB without the optimizer, but EIP-170 caps deployable contract size at 24,576 bytes — it could not be deployed to BASE (or any EVM chain) at all before this was fixed. With `optimizer = true, optimizer_runs = 200` in `foundry-tests/foundry.toml`, it compiles to ~23KB (~1.5KB margin). Do not remove this setting.
 
 ---
 
@@ -151,4 +177,6 @@ web site/
 - 3rd party security audit (CertiK / Hacken)
 - LGY ERC-20 token contract
 - Validator bootstrap strategy (how validators participate before real LGY exists)
-- Test coverage gap: claim/delete signature flows, governance proposal lifecycle, and the Service Provider Registry are implemented but not yet covered by Foundry tests (only 9 vault-lifecycle tests + 27 airdrop tests + 2 counter exist)
+- ~~Test coverage gap~~ — resolved 2026-07-03: claim/delete signature flows, governance proposal lifecycle, and the Service Provider Registry now have Foundry tests (main contract went from 9 → 34 tests; 63/63 total passing).
+- Real storage backend not yet connected: the contract only stores an `encryptedDataURI` string — no actual client-side encryption + upload flow (e.g. IPFS/Arweave via a pinning service) exists yet in a front-end/dApp, and no real Service Provider has been registered via governance.
+- Front-end/dApp — unclear if a functional vault create/claim/veto UI exists beyond the marketing website reviewed in this repo.
