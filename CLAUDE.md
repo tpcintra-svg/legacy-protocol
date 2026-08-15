@@ -180,3 +180,45 @@ web site/
 - ~~Test coverage gap~~ — resolved 2026-07-03: claim/delete signature flows, governance proposal lifecycle, and the Service Provider Registry now have Foundry tests (main contract went from 9 → 34 tests; 63/63 total passing).
 - Real storage backend not yet connected: the contract only stores an `encryptedDataURI` string — no actual client-side encryption + upload flow (e.g. IPFS/Arweave via a pinning service) exists yet in a front-end/dApp, and no real Service Provider has been registered via governance.
 - Front-end/dApp — unclear if a functional vault create/claim/veto UI exists beyond the marketing website reviewed in this repo.
+
+- > Šis fragmentas skirtas įklijuoti į `legacy-protocol` (viešo repo)
+> `CLAUDE.md` failą — pvz. kaip naują skyrių arti dokumento pabaigos,
+> po "Things NOT yet done". Paruošta 2026-08-16 koordinatoriaus, kad
+> Code sesijos matytų sprendimų ribas tiesiogiai repo viduje, ne tik
+> per atskirą perdavimo dokumentą.
+
+---
+
+## Task Handoff Protocol (kaip Code sesija turi suprasti "judam" nurodymus)
+
+Kai žmogus šiame repo parašo **„tesk"** (arba tiesiog nurodo veikti pagal šį protokolą):
+
+1. Patikrink, ar repo master šaknyje yra failas `KITA-UZDUOTIS.md`.
+2. Jei yra — perskaityk jį VISĄ ir įvykdyk būtent tą užduotį, laikydamasis jos apimties ir "NE ŠIOS UŽDUOTIES APIMTYJE" apribojimų.
+3. Baigus (arba jei negali baigti dėl trūkstamos prieigos/informacijos) — atnaujink `PROGRESAS.md` ir `RAPORTAS-LATEST.md` (sukurk, jei jų dar nėra), tada IŠTRINK `KITA-UZDUOTIS.md`.
+4. Jei `KITA-UZDUOTIS.md` faile yra skyrius „Reikia patvirtinimo dėl" arba užduotis paliečia sritis, priklausančias TIK Tomo sprendimui (žr. Decision Boundaries žemiau) — STOP, nedaryk prielaidų, aiškiai paklausk raporte.
+5. Jei `KITA-UZDUOTIS.md` NĖRA repo šaknyje, o žmogus vis tiek parašė „tesk" — paprašyk jo arba įklijuoti užduotį tiesiai į pokalbį, arba nurodyti, kur ją rasti; nebandyk spėti, ko reikia.
+
+Ši pati konvencija (tas pats žodis „tesk") galioja identiškai ir privačiame (sutarties) repo, jo paties `CLAUDE.md` faile — ten disambiguacija taip pat vyksta per sesijos repo kontekstą, ne per skirtingą žodį.
+
+---
+
+## Decision Boundaries (koordinatoriaus ir Code sesijų įgaliojimų ribos)
+
+Šis skyrius apibrėžia, ką koordinatorius/Code sesija gali spręsti savarankiškai, o ką — tik Tomas. Jei užduotis liečia dešinę pusę, sustok ir palauk Tomo patvirtinimo raporto skyriuje "Reikia patvirtinimo dėl".
+
+**Sprendžia koordinatorius/Code:**
+- Implementacijos detalės, neišeinančios už esamos architektūros (3-iš-6 multisig, 14 d. timelock, joks pause/guardian mechanizmas).
+- Dokumentacijos sinchronizavimas su realybe (testų skaičiai, statuso žymos, jau padaryto darbo aprašymas).
+- Užduočių eiliškumas pagal patvirtintą roadmap kritinį kelią.
+- Smulkūs whitepaper status-banner pataisymai, kai jie tik ištaiso faktą.
+
+**Sprendžia tik Tomas:**
+- Bet kokios išlaidos (audito firma, gas kaštai, paraiškos grants/akceleratoriams).
+- Teisiniai / SAFT / token ekonomikos sprendimai.
+- Bet koks testnet ar mainnet deployment paleidimas — visada Tomo rankinis veiksmas jo paties aplinkoje.
+- Galutinis investuotojams skirtos komunikacijos turinys prieš siunčiant.
+- LGY token / Polygon klausimo faktinis paaiškinimas — kol Tomas nepatvirtina, jokia komunikacija šia tema nesiunčiama.
+- Svetainės Cloudflare deploy (rankinis "Upload assets" žingsnis).
+
+**Raktų taisyklė:** joks deployer/private raktas niekada neprašomas ir nepatenka į jokį agento konteinerį. Deployment visada lieka Tomo rankinis veiksmas.
