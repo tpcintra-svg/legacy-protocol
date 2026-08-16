@@ -619,14 +619,7 @@
     <h1>Lo que no puedes decir<br>en voz alta, <em>dilo después.</em></h1>
     <p class="hero-sub">Legacy Protocol es un interruptor de hombre muerto no custodial para material cifrado — testamentos, claves, pruebas — que se libera a las personas que elijas, en tu propio calendario, sin que nadie más que tú tenga la custodia.</p>
     <div class="hero-actions">
-      <form action="https://legacyprotocol.us2.list-manage.com/subscribe/post?u=8f82f281ad1691546011598f0&amp;id=004f6fd32d&amp;f_id=00e596e3f0" method="post" id="mc-embedded-subscribe-form-deck" name="mc-embedded-subscribe-form-deck" class="validate" target="_blank" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <input type="email" name="EMAIL" placeholder="your@email.com" required style="padding:10px 16px; background:rgba(232,227,216,0.08); border:1px solid var(--line-bright); border-radius:6px; color:var(--parchment); font-family:var(--body); font-size:14px; outline:none; min-width:200px;">
-        <input type="hidden" name="group[95220][4]" value="1">
-        <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
-          <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
-        </div>
-        <button type="submit" name="subscribe" class="btn btn-primary">Solicitar la presentación</button>
-      </form>
+      <a href="mailto:ceo@legacyprotocol.io?subject=Request%3A%20Legacy%20Protocol%20Pitch%20Deck&body=Hi%20Tomas%2C%0A%0AI%20came%20across%20Legacy%20Protocol%20and%20would%20like%20to%20learn%20more.%20Could%20you%20share%20the%20pitch%20deck%3F%0A%0A" class="btn btn-primary">Solicitar la presentación</a>
       <a href="#architecture" class="btn btn-ghost">Ver lo que ya está construido</a>
     </div>
     <p style="margin-top:28px; font-size:13px; color:var(--parchment-dim); letter-spacing:0.04em;">Construido sobre <span style="color:var(--parchment); font-weight:500;">Base</span> — la red L2 de Coinbase</p>
@@ -635,7 +628,7 @@
       <div class="candor-seal">i</div>
       <div class="candor-text">
         <h3>Cada afirmación en esta página está etiquetada.</h3>
-        <p><span class="seal seal-live" style="margin-right:4px;">En vivo</span> significa que ya existe hoy en el contrato auditado. <span class="seal seal-planned" style="margin-right:4px;">Planificado</span> significa que está en la hoja de ruta, no en la cadena. Preferimos que confíes menos en lo que decimos y verifiques más por ti mismo — consulta el <a href="#contact">código fuente del contrato</a> tú mismo.</p>
+        <p><span class="seal seal-live" style="margin-right:4px;">En vivo</span> significa que ya existe hoy en el contrato auditado. <span class="seal seal-partial" style="margin-right:4px;">Parcial</span> significa que una parte ya está en vivo y probada, y otra parte aún está por llegar. <span class="seal seal-planned" style="margin-right:4px;">Planificado</span> significa que está en la hoja de ruta, no en la cadena. Preferimos que confíes menos en lo que decimos y verifiques más por ti mismo — consulta el <a href="#contact">código fuente del contrato</a> tú mismo.</p>
       </div>
     </div>
   </div>
@@ -1020,7 +1013,7 @@
       <div class="road-item is-live">
         <div class="road-dot live">1</div>
         <h4>Producto principal de bóveda</h4>
-        <p>Creación, extensión, reclamaciones, disputas y gobernanza en cadena de la bóveda — desplegable hoy con comisiones denominadas en ETH.</p>
+        <p>Creación, extensión, reclamaciones, disputas y gobernanza en cadena de la bóveda — desplegable hoy con comisiones denominadas en ETH. Código del contrato y suite de pruebas completos; el despliegue en la testnet Base Sepolia todavía está pendiente.</p>
         <span class="seal seal-live">En vivo</span>
       </div>
 
@@ -1033,20 +1026,27 @@
 
       <div class="road-item is-planned">
         <div class="road-dot planned">3</div>
+        <h4>Precios dinámicos basados en oráculo</h4>
+        <p>Las comisiones se cotizan en términos estables equivalentes a moneda fiat y se liquidan en LGY mediante un feed de precios en vivo, una vez que LGY tenga liquidez real en el mercado.</p>
+        <span class="seal seal-planned">Planned</span>
+      </div>
+
+      <div class="road-item is-planned">
+        <div class="road-dot planned">4</div>
         <h4>Almacenamiento descentralizado</h4>
         <p>Red de nodos o integración con almacenamiento descentralizado existente, además del reparto de secretos de Shamir del lado del cliente para la distribución de claves.</p>
         <span class="seal seal-planned">Planificado</span>
       </div>
 
       <div class="road-item is-planned">
-        <div class="road-dot planned">4</div>
+        <div class="road-dot planned">5</div>
         <h4>Adjudicación de reclamaciones</h4>
         <p>Niveles de revisión automatizada, humana y por jurado para reclamaciones impugnadas a gran escala — superpuestos al paso de reclamación verificada por firma que ya funciona.</p>
         <span class="seal seal-planned">Planificado</span>
       </div>
 
       <div class="road-item is-planned">
-        <div class="road-dot planned">5</div>
+        <div class="road-dot planned">6</div>
         <h4>Descubrimiento de conocimiento cero real</h4>
         <p>Prueba criptográfica de la condición de destinatario que no revela nada bajo inspección directa de la cadena — un objetivo en fase de investigación, secuenciado al final.</p>
         <span class="seal seal-planned">Planificado</span>
@@ -1062,14 +1062,8 @@
       <h2>Construido sobre lo real. Diseñado para lo que sigue.</h2>
       <p>Estamos recaudando fondos para llevar el núcleo auditado de testnet a mainnet, y para financiar la auditoría de seguridad independiente que se realiza antes de que los fondos de nadie lo toquen.</p>
       <div class="hero-actions">
-        <form action="https://legacyprotocol.us2.list-manage.com/subscribe/post?u=8f82f281ad1691546011598f0&amp;id=004f6fd32d&amp;f_id=00e596e3f0" method="post" id="mc-embedded-subscribe-form-investor" name="mc-embedded-subscribe-form-investor" class="validate" target="_blank" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-          <input type="email" name="EMAIL" placeholder="your@email.com" required style="flex:1; min-width:220px; padding:12px 16px; background:rgba(232,227,216,0.08); border:1px solid var(--line-bright); border-radius:6px; color:var(--parchment); font-family:var(--body); font-size:0.95rem; outline:none;">
-          <input type="hidden" name="group[95220][2]" value="1">
-          <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
-            <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
-          </div>
-          <button type="submit" name="subscribe" class="btn btn-primary">Escríbenos</button>
-        </form>
+        <a href="mailto:ceo@legacyprotocol.io?subject=Legacy%20Protocol%20%E2%80%94%20Investor%20Inquiry" class="btn btn-primary">Escríbenos</a>
+        <a href="../LGY_Whitepaper_Rev2026_3.pdf" class="btn" target="_blank" style="border:1px solid var(--line-bright); background:transparent; color:var(--parchment);">Descargar el White Paper</a>
       </div>
       <p style="font-size:13px; color:var(--parchment-dim); margin-top:16px;">
         o escribe directamente: <a href="mailto:ceo@legacyprotocol.io" style="color:var(--sage); text-decoration:none;">ceo@legacyprotocol.io</a></p>
@@ -1088,7 +1082,6 @@
         <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
           <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
         </div>
-        <input type="hidden" name="group[95220][1]" value="1">
         <button type="submit" name="subscribe"
           style="padding:12px 24px; background:var(--amber); border:none; border-radius:6px; color:#fff; font-family:var(--body); font-size:0.95rem; font-weight:600; cursor:pointer; transition:background 0.2s;"
           onmouseover="this.style.background='var(--amber-bright)'" onmouseout="this.style.background='var(--amber)'">
