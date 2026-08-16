@@ -619,14 +619,7 @@
     <h1>说不出口的话，<br><em>以后再说。</em></h1>
     <p class="hero-sub">Legacy Protocol 是一个非托管的死人开关，用于保护加密材料——遗嘱、密钥、证据——只有在你设定的时间释放给你指定的人，除你之外没有任何人掌管访问权。</p>
     <div class="hero-actions">
-      <form action="https://legacyprotocol.us2.list-manage.com/subscribe/post?u=8f82f281ad1691546011598f0&amp;id=004f6fd32d&amp;f_id=00e596e3f0" method="post" id="mc-embedded-subscribe-form-deck" name="mc-embedded-subscribe-form-deck" class="validate" target="_blank" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <input type="email" name="EMAIL" placeholder="your@email.com" required style="padding:10px 16px; background:rgba(232,227,216,0.08); border:1px solid var(--line-bright); border-radius:6px; color:var(--parchment); font-family:var(--body); font-size:14px; outline:none; min-width:200px;">
-        <input type="hidden" name="group[95220][4]" value="1">
-        <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
-          <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
-        </div>
-        <button type="submit" name="subscribe" class="btn btn-primary">索取演示文稿</button>
-      </form>
+      <a href="mailto:ceo@legacyprotocol.io?subject=Request%3A%20Legacy%20Protocol%20Pitch%20Deck&body=Hi%20Tomas%2C%0A%0AI%20came%20across%20Legacy%20Protocol%20and%20would%20like%20to%20learn%20more.%20Could%20you%20share%20the%20pitch%20deck%3F%0A%0A" class="btn btn-primary">索取项目介绍</a>
       <a href="#architecture" class="btn btn-ghost">查看已实现的功能</a>
     </div>
     <p style="margin-top:28px; font-size:13px; color:var(--parchment-dim); letter-spacing:0.04em;">构建于 <span style="color:var(--parchment); font-weight:500;">Base</span> —— Coinbase 的 L2 网络</p>
@@ -635,7 +628,7 @@
       <div class="candor-seal">i</div>
       <div class="candor-text">
         <h3>本页面的每一项声明都有明确标注。</h3>
-        <p><span class="seal seal-live" style="margin-right:4px;">已上线</span> 表示该功能今天已存在于经过审计的合约中。<span class="seal seal-planned" style="margin-right:4px;">计划中</span> 表示它在路线图上，但尚未上链。我们希望你少相信我们说的话，多亲自验证——请自行查看<a href="#contact">合约源代码</a>。</p>
+        <p><span class="seal seal-live" style="margin-right:4px;">已上线</span> 表示该功能今天已存在于经过审计的合约中。<span class="seal seal-partial" style="margin-right:4px;">部分实现</span> 表示部分功能已上线并经过测试，部分仍在开发中。 <span class="seal seal-planned" style="margin-right:4px;">计划中</span> 表示它在路线图上，但尚未上链。我们希望你少相信我们说的话，多亲自验证——请自行查看<a href="#contact">合约源代码</a>。</p>
       </div>
     </div>
   </div>
@@ -1020,7 +1013,7 @@
       <div class="road-item is-live">
         <div class="road-dot live">1</div>
         <h4>核心保险库产品</h4>
-        <p>保险库创建、延期、领取、争议和链上治理——今天即可以 ETH 计价的费用部署。</p>
+        <p>保险库创建、延期、领取、争议和链上治理——今天即可以 ETH 计价的费用部署。 合约代码与测试套件已完成；Base Sepolia 测试网部署仍待进行。</p>
         <span class="seal seal-live">已上线</span>
       </div>
 
@@ -1033,20 +1026,27 @@
 
       <div class="road-item is-planned">
         <div class="road-dot planned">3</div>
+        <h4>基于预言机的动态定价</h4>
+        <p>一旦 LGY 拥有真实的市场流动性，费用将以稳定的法币等值形式报价，并通过实时价格馈送以 LGY 结算。</p>
+        <span class="seal seal-planned">Planned</span>
+      </div>
+
+      <div class="road-item is-planned">
+        <div class="road-dot planned">4</div>
         <h4>去中心化存储</h4>
         <p>节点网络或与现有去中心化存储的集成,加上用于密钥分发的客户端 Shamir 秘密共享方案。</p>
         <span class="seal seal-planned">计划中</span>
       </div>
 
       <div class="road-item is-planned">
-        <div class="road-dot planned">4</div>
+        <div class="road-dot planned">5</div>
         <h4>领取裁决</h4>
         <p>针对大规模有争议领取请求的自动化、人工和陪审团审查层级——叠加在已经运行的签名验证领取步骤之上。</p>
         <span class="seal seal-planned">计划中</span>
       </div>
 
       <div class="road-item is-planned">
-        <div class="road-dot planned">5</div>
+        <div class="road-dot planned">6</div>
         <h4>真正的零知识发现</h4>
         <p>能够在直接检查链上数据时不泄露任何信息的接收人身份加密证明——一个研究阶段的目标,排在最后。</p>
         <span class="seal seal-planned">计划中</span>
@@ -1062,14 +1062,8 @@
       <h2>建立在真实之上。为未来而设计。</h2>
       <p>我们正在筹集资金,将经过审计的核心从测试网迁移到主网,并资助在任何人的资金接触协议之前进行的独立安全审计。</p>
       <div class="hero-actions">
-        <form action="https://legacyprotocol.us2.list-manage.com/subscribe/post?u=8f82f281ad1691546011598f0&amp;id=004f6fd32d&amp;f_id=00e596e3f0" method="post" id="mc-embedded-subscribe-form-investor" name="mc-embedded-subscribe-form-investor" class="validate" target="_blank" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-          <input type="email" name="EMAIL" placeholder="your@email.com" required style="flex:1; min-width:220px; padding:12px 16px; background:rgba(232,227,216,0.08); border:1px solid var(--line-bright); border-radius:6px; color:var(--parchment); font-family:var(--body); font-size:0.95rem; outline:none;">
-          <input type="hidden" name="group[95220][2]" value="1">
-          <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
-            <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
-          </div>
-          <button type="submit" name="subscribe" class="btn btn-primary">联系我们</button>
-        </form>
+        <a href="mailto:ceo@legacyprotocol.io?subject=Legacy%20Protocol%20%E2%80%94%20Investor%20Inquiry" class="btn btn-primary">给我们发邮件</a>
+        <a href="../LGY_Whitepaper_Rev2026_3.pdf" class="btn" target="_blank" style="border:1px solid var(--line-bright); background:transparent; color:var(--parchment);">下载白皮书</a>
       </div>
       <p style="font-size:13px; color:var(--parchment-dim); margin-top:16px;">
         或直接写信至:<a href="mailto:ceo@legacyprotocol.io" style="color:var(--sage); text-decoration:none;">ceo@legacyprotocol.io</a></p>
@@ -1088,7 +1082,6 @@
         <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
           <input type="text" name="b_8f82f281ad1691546011598f0_004f6fd32d" tabindex="-1" value="">
         </div>
-        <input type="hidden" name="group[95220][1]" value="1">
         <button type="submit" name="subscribe"
           style="padding:12px 24px; background:var(--amber); border:none; border-radius:6px; color:#fff; font-family:var(--body); font-size:0.95rem; font-weight:600; cursor:pointer; transition:background 0.2s;"
           onmouseover="this.style.background='var(--amber-bright)'" onmouseout="this.style.background='var(--amber)'">
